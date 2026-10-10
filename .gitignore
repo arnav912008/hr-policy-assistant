@@ -1,0 +1,11 @@
+auth.db
+employee_dbs/
+chroma_db/
+policy_versions/
+initial_credentials.txt
+Policy.pdf
+.policy_upload_*.pdf
+__pycache__/
+*.pyc
+.venv/
+.env

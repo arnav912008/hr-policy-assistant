@@ -1,0 +1,10 @@
+streamlit>=1.40
+langchain-community
+langchain-classic
+langchain-core
+langchain-text-splitters
+langchain-ollama
+chromadb
+pypdf
+# optional: shows a QR code when setting up two-step sign-in (the text key is always shown)
+# qrcode[pil]

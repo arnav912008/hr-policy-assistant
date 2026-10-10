@@ -1,0 +1,19 @@
+# Hardened defaults. Your original config.toml did not arrive, so this is written from scratch:
+# merge in any [theme] settings you had.
+
+[server]
+headless = true
+maxUploadSize = 10                 # MB. Keep in step with MAX_PDF_BYTES in app4.py
+enableXsrfProtection = true
+enableCORS = true
+# address = "127.0.0.1"            # uncomment when a TLS reverse proxy (nginx, Caddy) sits in front
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showErrorDetails = "none"          # users never see stack traces
+toolbarMode = "minimal"
+
+[global]
+developmentMode = false
