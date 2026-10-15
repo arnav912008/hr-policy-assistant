@@ -1,0 +1,4 @@
+employee_id,year,leave_type,days
+E1003,2026,annual,24
+E1003,2026,sick,12
+E1003,2026,casual,8

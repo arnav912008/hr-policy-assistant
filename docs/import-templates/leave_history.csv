@@ -1,0 +1,3 @@
+employee_id,leave_type,start_date,end_date,status,reason
+E1003,annual,2026-03-02,2026-03-06,approved,Family trip
+E1004,sick,2026-04-14,2026-04-14,approved,

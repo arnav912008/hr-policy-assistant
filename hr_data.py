@@ -6,6 +6,7 @@ taken from fixed whitelists, never from user input.
 """
 from __future__ import annotations
 
+import os
 import random
 import re
 import secrets
@@ -18,7 +19,23 @@ import hr_security as sec
 from hr_security import audit
 
 LEAVE_TYPES = ("annual", "sick", "casual", "unpaid")
-DEFAULT_ALLOTMENT = {"annual": 18.0, "sick": 10.0, "casual": 6.0}
+def _load_default_allotment() -> dict:
+    """Yearly leave days per type. Override with HR_DEFAULT_ALLOTMENT="annual=24,sick=12,casual=8"."""
+    base = {"annual": 18.0, "sick": 10.0, "casual": 6.0}
+    for part in os.environ.get("HR_DEFAULT_ALLOTMENT", "").split(","):
+        key, _, val = part.partition("=")
+        key = key.strip().lower()
+        if key in base:
+            try:
+                days = float(val)
+            except ValueError:
+                continue
+            if 0 <= days <= 366:
+                base[key] = days
+    return base
+
+
+DEFAULT_ALLOTMENT = _load_default_allotment()
 MAX_LEAVE_CALENDAR_DAYS = 60
 BACKDATE_LIMIT_DAYS = 7
 MAX_FUTURE_DAYS = 366
@@ -51,7 +68,7 @@ _TEXT_LIMITS = {
 }
 _RE_PHONE = re.compile(r"^\+?[0-9][0-9 ()\-.]{5,19}$")
 _RE_EMAIL = re.compile(r"^[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}\.[A-Za-z]{2,}$")
-_RE_BAND = re.compile(r"^B[1-9]$")
+_RE_BAND = re.compile(r"^[A-Z0-9][A-Z0-9._-]{0,11}$")
 _BAD_CHARS = re.compile(r"[<>`\[\]{}\\|]")
 _CTRL = re.compile(r"[\x00-\x1f\x7f]")
 
@@ -130,7 +147,7 @@ def validate_field(field: str, value: str):
         return (v.lower(), None) if _RE_EMAIL.match(v) else (None, "That doesn't look like a valid email address.")
     if field == "salary_band":
         v = str(value or "").strip().upper()
-        return (v, None) if _RE_BAND.match(v) else (None, "Salary band must look like B1 to B9.")
+        return (v, None) if _RE_BAND.match(v) else (None, "Salary band can use up to 12 letters, digits, dots or dashes (for example B3).")
     if field == "status":
         v = str(value or "").strip().lower()
         v = {"inactive": "terminated"}.get(v, v)
@@ -205,6 +222,13 @@ def get_person(employee_id: str) -> Optional[dict]:
     with hr_conn() as conn:
         r = conn.execute(_PERSON_SQL + " WHERE a.employee_id = ?", (employee_id,)).fetchone()
     return _row_to_person(r) if r else None
+
+
+def all_people() -> list:
+    """Every employee with full profile fields. Used by the bulk importer; not exposed to chat."""
+    with hr_conn() as conn:
+        rows = conn.execute(_PERSON_SQL + " ORDER BY a.employee_id").fetchall()
+    return [_row_to_person(r) for r in rows]
 
 
 def list_people(include_inactive: bool = False) -> list:
@@ -666,19 +690,25 @@ def seed_synthetic_data() -> list:
     return creds
 
 
-def bootstrap() -> list:
-    """Idempotent start-up. Creates schemas, migrates old installs, seeds demo data on an empty HR database."""
+def bootstrap(seed_demo: Optional[bool] = None) -> list:
+    """Idempotent start-up. Creates schemas, migrates old installs, and seeds demo data on an empty HR database.
+
+    Demo seeding is on by default so the project works out of the box. For a real company set
+    HR_SEED_DEMO=0 (the importer in manage.py never seeds demo data).
+    """
+    if seed_demo is None:
+        seed_demo = os.environ.get("HR_SEED_DEMO", "1") != "0"
     sec.secure_runtime()
     rotated = sec.init_auth_db()
     init_hr_db()
     new_creds = []
     with hr_conn() as conn:
         empty = conn.execute("SELECT COUNT(*) FROM employee_profile").fetchone()[0] == 0
-    if empty:
+    if empty and seed_demo:
         new_creds = seed_synthetic_data()
         if new_creds:
             sec.write_credentials(new_creds, note="Synthetic demo accounts.")
-    else:  # an older install: make sure every login has a profile row
+    elif not empty:  # an older install: make sure every login has a profile row
         with hr_conn() as conn:
             with conn:
                 conn.execute("INSERT OR IGNORE INTO employee_profile (employee_id) SELECT employee_id FROM auth.employees")

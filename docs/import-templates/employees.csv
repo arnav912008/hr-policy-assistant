@@ -1,0 +1,5 @@
+employee_id,name,email,role,manager_id,department,job_title,location,hire_date,phone,status,address,emergency_contact_name,emergency_contact_phone,salary_band
+E1001,Priya Raman,priya.raman@example.com,hr_admin,,People,Head of People,Mumbai,2018-04-02,+91 98100 00001,active,,,,
+E1002,Arjun Mehta,arjun.mehta@example.com,manager,,Engineering,Engineering Manager,Bengaluru,2019-09-16,+91 98100 00002,active,,,,
+E1003,Neha Kapoor,neha.kapoor@example.com,employee,E1002,Engineering,Software Engineer,Bengaluru,2022-01-10,,active,,,,
+E1004,Rohan Das,rohan.das@example.com,employee,E1002,Engineering,QA Engineer,Remote,2021-07-05,,active,,,,

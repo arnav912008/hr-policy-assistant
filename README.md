@@ -92,6 +92,17 @@ The whole interface runs on a few colour and size variables at the top of `BASE_
 Change `--pine`, `--pine-hover`, `--pine-press` and `--tint` together to re-colour the app. The default font is your
 system font; set `HR_ALLOW_EXTERNAL_FONTS=1` to load Figtree instead.
 
+## Using it for a real company
+
+The demo data is fictional. To load your own people, holidays and leave balances from CSV files, follow
+**[docs/IMPORTING_DATA.md](docs/IMPORTING_DATA.md)**. In short:
+
+```bash
+export HR_SEED_DEMO=0
+python manage.py import-employees employees.csv --dry-run   # check first, nothing is written
+python manage.py import-employees employees.csv
+```
+
 ## Deploying for real people
 
 This is a reference project. Before using it with real data, read [SECURITY.md](SECURITY.md). In short: put it behind a

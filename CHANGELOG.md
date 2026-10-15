@@ -5,6 +5,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Bulk import of real company data from CSV: `manage.py import-employees`, `import-holidays`, `import-allotments`, `import-leave`. Every file is validated in full first, errors list their line numbers, nothing is written if any row fails, and `--dry-run` previews the result. See `docs/IMPORTING_DATA.md` and the templates in `docs/import-templates/`.
+- `HR_SEED_DEMO=0` stops demo data being created; `HR_DEFAULT_ALLOTMENT` sets the company's yearly leave days.
+
+### Changed
+- Salary band accepts any short code (up to 12 letters, digits, dots or dashes) instead of only B1 to B9.
+
 ### Changed
 - Redesigned the interface. Calmer, lighter look on a single colour system (all tokens are variables at the top of `BASE_CSS`).
 - Conversation reads like a document: replies are plain text, your messages are soft tinted bubbles, and the composer is a light floating input instead of a dark bar.

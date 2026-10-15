@@ -63,7 +63,12 @@ def _bootstrap_once():
     if created:
         msg = (f"{len(created)} one-time passwords were written to {sec.CREDENTIALS_FILE}. "
                "Hand them out, then delete that file. Everyone must change their password at first sign-in.")
+        if os.environ.get("HR_SEED_DEMO", "1") != "0":
+            msg += " These are DEMO accounts. For a real company set HR_SEED_DEMO=0 and import real data (docs/IMPORTING_DATA.md)."
         print(msg, flush=True)
+    if sec.user_count() == 0:
+        print("No employees found. Load your company data first: python manage.py import-employees employees.csv "
+              "(see docs/IMPORTING_DATA.md).", flush=True)
     sec.harden(PDF_PATH, 0o600)
     sec.harden(CHROMA_DIR, 0o700)
     sec.harden(POLICY_VERSIONS_DIR, 0o700)
