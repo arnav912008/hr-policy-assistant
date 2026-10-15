@@ -356,180 +356,184 @@ def _sign_out():
 # UI THEME  (styled after login.html / code.html)
 # =====================================================================
 BASE_CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap');
+
+/* ---------- Design tokens: change the look here ---------- */
+:root {
+    --canvas: #ffffff;
+    --mist: #f3f5f4;
+    --ink: #1f2933;
+    --ink-2: #4a5565;
+    --ink-3: #667085;
+    --line: #e1e6e3;
+    --line-strong: #c9d1cc;
+    --pine: #0b6b5d;
+    --pine-hover: #095649;
+    --pine-press: #074439;
+    --tint: #e8f2ef;
+    --tint-2: #f3f9f7;
+    --hover: rgba(31, 41, 51, 0.06);
+    --sidebar-w: 17.5rem;
+    --column-w: 760px;
+    --font: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
 
 html, body, .stApp, .stApp p, .stApp label, .stApp button, .stApp input,
 .stApp textarea, .stApp li, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4 {
-    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+    font-family: var(--font) !important;
     -webkit-font-smoothing: antialiased;
 }
-html, body { background: #ffffff !important; color-scheme: light only; }
+html, body { background: var(--canvas) !important; color-scheme: light only; }
+.stApp { color: var(--ink); color-scheme: light only; }
 header[data-testid="stHeader"]::before, header[data-testid="stHeader"]::after { display: none !important; }
-header[data-testid="stHeader"] { border: 0 !important; box-shadow: none !important; background-image: none !important; }
-.stApp { color: #1e293b; color-scheme: light only; }
+header[data-testid="stHeader"] { border: 0 !important; box-shadow: none !important; background: transparent !important; background-image: none !important; }
 #MainMenu, [data-testid="stMainMenu"] { display: none !important; }
 footer, [data-testid="stDecoration"], #stDecoration { display: none !important; }
-header[data-testid="stHeader"] { background: transparent !important; }
 [data-testid="stToolbar"] button, [data-testid="stToolbar"] a,
-[data-testid="stAppDeployButton"] button { color: #475569 !important; font-size: 14px; font-weight: 500; }
+[data-testid="stAppDeployButton"] button { color: var(--ink-2) !important; font-size: 14px; font-weight: 500; }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--line-strong); }
 
-@keyframes fadeInUp { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
-@keyframes fadeInSidebar { 0% { opacity: 0; transform: translateX(-8px); } 100% { opacity: 1; transform: translateX(0); } }
+@keyframes hrFade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
                               transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 
-/* shared small text styles */
-.hr-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #64748b; line-height: 16.5px; }
-.hr-eyebrow.light { color: #94a3b8; }
-.hr-muted { font-size: 14px; color: #64748b; line-height: 20px; }
-.hr-mark { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px;
-           background: #2d5282; color: #ffffff; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
-.hr-mark.sm { width: 32px; height: 32px; border-radius: 8px; font-size: 15px; }
+/* keyboard focus is always visible */
+.stApp :is(button, input, textarea, summary, [role="button"]):focus-visible { outline: 2px solid var(--pine) !important; outline-offset: 2px; }
+
+/* shared small text styles and brand mark */
+.hr-label { font-size: 12px; font-weight: 600; line-height: 16px; color: var(--ink-3); }
+.hr-muted { font-size: 13px; color: var(--ink-3); line-height: 18px; }
+.hr-mark { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; height: 36px; border-radius: 10px;
+           background: var(--pine); color: #ffffff; font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+.hr-mark.sm { width: 30px; height: 30px; border-radius: 8px; font-size: 14px; }
+
+/* ---------- Form controls (sign-in, password change, sidebar forms) ---------- */
+[data-testid="stForm"] { border: 0 !important; padding: 0 !important; background: transparent !important; max-width: none; }
+[data-testid="stForm"] [data-testid="stVerticalBlock"] { gap: 16px; }
+[data-testid="stTextInput"] { gap: 6px !important; }
+[data-testid="stWidgetLabel"] { min-height: 0; margin: 0; }
+[data-testid="stWidgetLabel"] p { font-size: 13px !important; font-weight: 600 !important; line-height: 18px; color: var(--ink-2) !important; margin: 0; }
+
+[data-testid="stTextInputRootElement"], div[data-baseweb="input"] { background: #ffffff !important; border: 1px solid var(--line-strong) !important;
+    border-radius: 10px !important; box-shadow: none; min-height: 0; transition: border-color .15s, box-shadow .15s; }
+div[data-baseweb="input"]:not([data-testid="stTextInputRootElement"]) { border: 0 !important; box-shadow: none !important; background: transparent !important; }
+[data-testid="stTextInputRootElement"]:hover { border-color: var(--ink-3) !important; }
+[data-testid="stTextInputRootElement"]:focus-within { border-color: var(--pine) !important; box-shadow: 0 0 0 3px var(--tint) !important; }
+div[data-baseweb="base-input"], div[data-baseweb="base-input"] > div { background: transparent !important; border: 0 !important; }
+[data-testid="stTextInputRootElement"] input { padding: 10px 14px !important; font-size: 14px !important; line-height: 20px; color: var(--ink) !important;
+    background: transparent !important; -webkit-text-fill-color: var(--ink); caret-color: var(--pine); }
+[data-testid="stTextInputRootElement"] button { color: var(--ink-3) !important; background: transparent !important; border: 0 !important; }
+[data-testid="stTextInputRootElement"] button:hover { color: var(--ink) !important; }
+[data-testid="stTextInputRootElement"] button svg { color: var(--ink-3) !important; fill: currentColor; }
+
+[data-testid="stFormSubmitButton"] { margin-top: 4px; width: 100% !important; }
+[data-testid="stFormSubmitButton"] button { width: 100% !important; justify-content: center; padding: 10px 16px; min-height: 0; border: 0 !important;
+    border-radius: 10px; background: var(--pine) !important; box-shadow: none; transition: background-color .15s; }
+[data-testid="stFormSubmitButton"] button:hover { background: var(--pine-hover) !important; }
+[data-testid="stFormSubmitButton"] button:active { background: var(--pine-press) !important; }
+[data-testid="stFormSubmitButton"] button, [data-testid="stFormSubmitButton"] button * { color: #ffffff !important; font-size: 14px; font-weight: 600; line-height: 20px; }
+
+[data-testid="stAlert"] { border-radius: 10px; }
+[data-testid="stSpinner"], [data-testid="stSpinner"] * { color: var(--ink-3) !important; font-size: 14px; }
 """
 
 LOGIN_CSS = """
-.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] { background: #ffffff !important; }
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] { background: var(--canvas) !important; }
 .block-container, [data-testid="stMainBlockContainer"] { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
 [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] { gap: 0 !important; }
 
-/* right-hand brand panel (fixed, rounded, inset like the reference) */
+/* right-hand panel: a sample conversation shows what the assistant does */
 .st-key-login_panel, .st-key-login_panel > [data-testid="stVerticalBlock"] { height: 0; min-height: 0; overflow: visible; }
-.hr-lg-panel { position: fixed; top: 16px; right: 16px; bottom: 16px; width: calc(50vw - 24px); z-index: 1; border-radius: 16px; overflow: hidden; background-color: #1d3c66;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640' viewBox='0 0 640 640' fill='none' stroke='%23ffffff' stroke-opacity='0.08'%3E%3Ccircle cx='560' cy='80' r='120'/%3E%3Ccircle cx='560' cy='80' r='200'/%3E%3Ccircle cx='560' cy='80' r='280'/%3E%3Ccircle cx='560' cy='80' r='360'/%3E%3Ccircle cx='560' cy='80' r='440'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: top right; background-size: 640px; }
-.hr-lg-panel-inner { box-sizing: border-box; height: 100%; width: 100%; padding: clamp(28px, 4vw, 56px); display: flex; flex-direction: column; justify-content: space-between; }
-.hr-lg-chip { align-self: flex-start; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #e2e8f0; }
-.hr-lg-h { max-width: 30rem; font-size: clamp(28px, 2.6vw, 40px); line-height: 1.2; font-weight: 700; letter-spacing: -0.025em; color: #ffffff; }
-.hr-lg-p { max-width: 27rem; margin-top: 16px; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.78); }
-.hr-lg-topics { display: flex; flex-wrap: wrap; gap: 8px; max-width: 30rem; margin-top: 28px; }
-.hr-lg-topics span { padding: 6px 12px; border: 1px solid rgba(255,255,255,0.22); border-radius: 8px; background: rgba(255,255,255,0.06); font-size: 13px; color: #e2e8f0; }
-.hr-lg-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; max-width: 30rem; border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; background: rgba(255,255,255,0.1); }
-.hr-lg-card-dot { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.16); position: relative; }
-.hr-lg-card-dot::after { content: ""; position: absolute; inset: 12px; border-radius: 50%; background: #ffffff; }
-.hr-lg-card-title { font-size: 13px; font-weight: 600; line-height: 1.4; color: #ffffff; }
-.hr-lg-card-sub { margin-top: 2px; font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.72); }
+.hr-lg-panel { position: fixed; top: 16px; right: 16px; bottom: 16px; width: calc(50vw - 24px); z-index: 1; border-radius: 20px; overflow: hidden; background: var(--tint); }
+.hr-lg-panel-inner { box-sizing: border-box; height: 100%; width: 100%; padding: clamp(28px, 4vw, 56px); display: flex; flex-direction: column; justify-content: center; gap: 40px; }
+.hr-lg-h { max-width: 28rem; font-size: clamp(24px, 2.2vw, 32px); line-height: 1.25; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+.hr-lg-p { max-width: 27rem; margin-top: 12px; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.hr-demo { display: flex; flex-direction: column; gap: 14px; max-width: 30rem; }
+.hr-demo-u { align-self: flex-end; max-width: 88%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 16px 16px 4px 16px; background: #ffffff; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.hr-demo-b { align-self: flex-start; max-width: 94%; padding: 0 2px; font-size: 14px; line-height: 1.6; color: var(--ink); }
+.hr-demo-b b { font-weight: 600; }
+.hr-demo-act { display: flex; gap: 8px; margin-top: 10px; }
+.hr-demo-act span { padding: 6px 14px; border: 1px solid var(--line-strong); border-radius: 10px; background: #ffffff; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.hr-demo-act span:first-child { border-color: var(--pine); background: var(--pine); color: #ffffff; }
+.hr-lg-note { max-width: 30rem; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
 
 /* left-hand sign-in column */
 .st-key-login_left, .st-key-login_left > [data-testid="stVerticalBlock"] { display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; gap: 0 !important; }
-.st-key-login_left { width: 50vw; max-width: 50vw; margin: 0; padding: 0 max(24px, calc((50vw - 28rem) / 2)); box-sizing: border-box; }
-.hr-lg-brand { display: flex; align-items: center; gap: 10px; height: 88px; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: #0f172a; }
-.hr-lg-foot { display: flex; align-items: center; height: 88px; font-size: 12px; color: #94a3b8; }
+.st-key-login_left { width: 50vw; max-width: 50vw; margin: 0; padding: 0 max(24px, calc((50vw - 26rem) / 2)); box-sizing: border-box; }
+.hr-lg-brand { display: flex; align-items: center; gap: 10px; height: 88px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+.hr-lg-foot { display: flex; align-items: center; height: 88px; font-size: 12px; color: var(--ink-3); }
 .st-key-login_zone, .st-key-login_zone > [data-testid="stVerticalBlock"] { gap: 0 !important; }
-.hr-lg-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; }
-.hr-lg-title { margin-top: 8px; font-size: 30px; line-height: 38px; font-weight: 700; letter-spacing: -0.025em; color: #0f172a; }
-.hr-lg-sub { margin: 8px 0 28px; font-size: 14px; line-height: 20px; color: #64748b; }
+.hr-lg-title { font-size: 28px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+.hr-lg-sub { margin: 6px 0 28px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.st-key-login_back button { margin-top: 12px; padding: 6px 0; min-height: 0; border: 0 !important; background: transparent !important; color: var(--ink-2) !important; font-size: 14px; font-weight: 500; }
+.st-key-login_back button:hover { color: var(--ink) !important; text-decoration: underline; }
 
-@media (min-width: 900px) {
-    [data-testid="stToolbar"] button, [data-testid="stToolbar"] a, [data-testid="stAppDeployButton"] button { color: rgba(255,255,255,0.88) !important; }
-}
 @media (max-width: 899px) {
     .hr-lg-panel { display: none; }
     .st-key-login_left { width: 100%; max-width: 100%; padding: 0 24px; }
 }
-
-[data-testid="stForm"] { max-width: none; border: 0 !important; padding: 0 !important; background: transparent !important; }
-[data-testid="stForm"] [data-testid="stVerticalBlock"] { gap: 20px; }
-[data-testid="stTextInput"] { gap: 6px !important; }
-[data-testid="stWidgetLabel"] { min-height: 0; margin: 0; }
-[data-testid="stWidgetLabel"] p { font-size: 14px !important; font-weight: 500 !important; line-height: 20px; color: #334155 !important; margin: 0; }
-
-[data-testid="stTextInputRootElement"], div[data-baseweb="input"] { background: #ffffff !important; border: 1px solid #cbd5e1 !important;
-    border-radius: 6px !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-height: 0; transition: all .15s ease-in-out; }
-div[data-baseweb="input"]:not([data-testid="stTextInputRootElement"]) { border: 0 !important; box-shadow: none !important; background: transparent !important; }
-[data-testid="stTextInputRootElement"]:focus-within { border-color: #1e293b !important; box-shadow: 0 0 0 1px #1e293b !important; }
-div[data-baseweb="base-input"], div[data-baseweb="base-input"] > div { background: transparent !important; border: 0 !important; }
-[data-testid="stTextInputRootElement"] input { padding: 8px 12px !important; font-size: 14px !important; line-height: 20px; color: #0f172a !important;
-    background: transparent !important; -webkit-text-fill-color: #0f172a; caret-color: #0f172a; }
-[data-testid="stTextInputRootElement"] button { color: #64748b !important; background: transparent !important; border: 0 !important; }
-[data-testid="stTextInputRootElement"] button:hover { color: #334155 !important; }
-[data-testid="stTextInputRootElement"] button svg { color: #64748b !important; fill: currentColor; }
-
-[data-testid="stFormSubmitButton"] { margin-top: 4px; width: 100% !important; }
-[data-testid="stFormSubmitButton"] button { width: 100% !important; justify-content: center; padding: 10px 16px; min-height: 0; border: 1px solid transparent !important;
-    border-radius: 6px; background: #355c8c !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: background-color .15s; }
-[data-testid="stFormSubmitButton"] button:hover { background: #2b4c74 !important; }
-[data-testid="stFormSubmitButton"] button:active { background: #243f61 !important; }
-[data-testid="stFormSubmitButton"] button:focus-visible { outline: 2px solid #355c8c; outline-offset: 2px; }
-[data-testid="stFormSubmitButton"] button, [data-testid="stFormSubmitButton"] button * { color: #ffffff !important; font-size: 14px; font-weight: 500; line-height: 20px; }
-
-/* larger, calmer controls for the split layout */
-[data-testid="stTextInputRootElement"], div[data-baseweb="input"] { border-radius: 8px !important; }
-[data-testid="stTextInputRootElement"] input { padding: 11px 14px !important; }
-[data-testid="stFormSubmitButton"] { margin-top: 8px; }
-[data-testid="stFormSubmitButton"] button { padding: 12px 16px; border-radius: 8px; background: #2d5282 !important; }
-[data-testid="stFormSubmitButton"] button:hover { background: #23416b !important; }
-[data-testid="stFormSubmitButton"] button:active { background: #1a3253 !important; }
 """
 
 MAIN_CSS = """
-.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] { background: #ffffff !important; }
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] { background: var(--canvas) !important; }
 
-/* ---------- Sidebar (always open) ---------- */
-section[data-testid="stSidebar"] { background: #f9fafb !important; border-right: 1px solid #e2e8f0;
-    width: 20rem !important; min-width: 20rem !important; max-width: 20rem !important;
-    transform: none !important; margin-left: 0 !important; visibility: visible !important; }
-section[data-testid="stSidebar"] > div:first-child { background: #f9fafb !important; width: 100% !important; }
-[data-testid="stSidebarHeader"], [data-testid="stSidebarCollapseButton"], [data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"], [data-testid="stExpandSidebarButton"], [data-testid="stSidebarResizeHandle"] { display: none !important; }
+/* ---------- Sidebar ---------- */
+section[data-testid="stSidebar"] { background: var(--mist) !important; border-right: 1px solid var(--line); }
+section[data-testid="stSidebar"] > div:first-child { background: var(--mist) !important; width: 100% !important; }
 [data-testid="stSidebarContent"] { padding: 0 !important; }
-[data-testid="stSidebarUserContent"] { padding: 28px 28px 96px !important; animation: fadeInSidebar .5s cubic-bezier(.16,1,.3,1) 50ms backwards; }
+[data-testid="stSidebarUserContent"] { padding: 20px 14px 88px !important; }
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { margin: 0 !important; }
 
-.st-key-side_root, .st-key-side_root > [data-testid="stVerticalBlock"] { display: flex; flex-direction: column; gap: 28px !important; }
+/* on desktop the sidebar is always open; on phones it collapses like a normal Streamlit sidebar */
+@media (min-width: 900px) {
+    section[data-testid="stSidebar"] { width: var(--sidebar-w) !important; min-width: var(--sidebar-w) !important; max-width: var(--sidebar-w) !important;
+        transform: none !important; margin-left: 0 !important; visibility: visible !important; }
+    [data-testid="stSidebarHeader"], [data-testid="stSidebarCollapseButton"], [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"], [data-testid="stExpandSidebarButton"], [data-testid="stSidebarResizeHandle"] { display: none !important; }
+}
+
+.st-key-side_root, .st-key-side_root > [data-testid="stVerticalBlock"] { display: flex; flex-direction: column; gap: 22px !important; }
 .st-key-side_root > [data-testid="stVerticalBlock"] { flex: 1 1 auto; }
-.st-key-side_root > *, .st-key-side_root > [data-testid="stVerticalBlock"] > * { animation: fadeInUp .5s cubic-bezier(.16,1,.3,1) backwards; }
 
-.hr-brand-title { font-size: 18px; line-height: 1.375; font-weight: 700; letter-spacing: -0.025em; color: #0f172a; }
-.hr-brand-sub { font-size: 14px; line-height: 20px; font-weight: 500; color: #64748b; }
-.hr-user-name { font-size: 14px; line-height: 1.25; font-weight: 600; color: #0f172a; }
-.hr-user-role { margin-top: 2px; font-size: 12px; line-height: 16px; color: #64748b; }
+.hr-brand { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+.hr-brand-title { font-size: 15px; line-height: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+.hr-brand-sub { font-size: 12px; line-height: 16px; color: var(--ink-3); }
 
-.st-key-side_recent, .st-key-side_recent > [data-testid="stVerticalBlock"] { gap: 8px !important; }
-.st-key-side_cats, .st-key-side_cats > [data-testid="stVerticalBlock"] { gap: 10px !important; }
-.st-key-side_cats .hr-eyebrow { margin-bottom: 2px; }
-.st-key-side_footer { position: fixed !important; left: 0; bottom: 0; z-index: 20; box-sizing: border-box; width: 20rem; margin: 0 !important;
-    padding: 16px 28px 20px; background: #f9fafb; border-top: 1px solid rgba(226,232,240,0.8); }
-.st-key-side_footer [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; align-items: center; gap: 8px !important; }
-.st-key-side_footer [data-testid="stColumn"], .st-key-side_footer [data-testid="column"] { min-width: 0 !important; width: auto !important; }
-.st-key-side_footer [data-testid="stColumn"]:last-child, .st-key-side_footer [data-testid="column"]:last-child { flex: 0 0 auto !important; display: flex; justify-content: flex-end; }
-.st-key-side_footer [data-testid="stColumn"]:first-child, .st-key-side_footer [data-testid="column"]:first-child { flex: 1 1 auto !important; overflow: hidden; }
-.hr-user-name, .hr-user-role { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-key-side_recent, .st-key-side_recent > [data-testid="stVerticalBlock"] { gap: 2px !important; }
+.st-key-side_cats, .st-key-side_cats > [data-testid="stVerticalBlock"] { gap: 2px !important; }
+.st-key-side_recent .hr-label, .st-key-side_cats .hr-label { padding: 0 10px 6px; }
+.st-key-side_recent .hr-muted { padding: 0 10px; }
 
 /* shared button reset */
-.st-key-new_conv button, [class*="st-key-cat_"] button, [class*="st-key-sq_"] button, [class*="st-key-recent_"] button, .st-key-signout button {
-    min-height: 0; line-height: 20px; transition: all .15s ease-out; }
+.st-key-new_conv button, [class*="st-key-cat_"] button, [class*="st-key-sq_"] button, [class*="st-key-recent_"] button, .st-key-signout button,
+[class*="st-key-act_"] button { min-height: 0; line-height: 20px; transition: background-color .15s, border-color .15s, color .15s; }
 .st-key-new_conv, [class*="st-key-cat_"], [class*="st-key-sq_"], [class*="st-key-recent_"] { width: 100% !important; }
 .st-key-new_conv button, [class*="st-key-cat_"] button, [class*="st-key-sq_"] button, [class*="st-key-recent_"] button { width: 100%; }
-.st-key-new_conv button p, [class*="st-key-cat_"] button p, [class*="st-key-sq_"] button p, [class*="st-key-recent_"] button p, .st-key-signout button p { margin: 0 !important; line-height: inherit; }
+.st-key-new_conv button p, [class*="st-key-cat_"] button p, [class*="st-key-sq_"] button p, [class*="st-key-recent_"] button p,
+.st-key-signout button p, [class*="st-key-act_"] button p { margin: 0 !important; line-height: inherit; }
 
-/* New conversation */
-.st-key-new_conv button { padding: 10px 20px; border: 0 !important; border-radius: 8px; background: #2d5282 !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition-duration: .2s; }
-.st-key-new_conv button:hover { background: #23416b !important; transform: translateY(-2px); box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); }
-.st-key-new_conv button:active { background: #1a3253 !important; transform: translateY(0) scale(0.98); }
-.st-key-new_conv button, .st-key-new_conv button * { color: #ffffff !important; font-size: 14px; font-weight: 500; }
+/* New conversation: the one solid button in the sidebar */
+.st-key-new_conv button { padding: 9px 14px; border: 0 !important; border-radius: 10px; background: var(--pine) !important; box-shadow: none; }
+.st-key-new_conv button:hover { background: var(--pine-hover) !important; }
+.st-key-new_conv button:active { background: var(--pine-press) !important; }
+.st-key-new_conv button, .st-key-new_conv button * { color: #ffffff !important; font-size: 14px; font-weight: 600; }
+.st-key-new_conv button p::before { content: "+"; margin-right: 8px; font-weight: 500; }
 
-/* Category buttons, recent items, sign out */
-[class*="st-key-cat_"] button, .st-key-signout button {
-    padding: 8px 16px; border: 1px solid #e2e8f0 !important; border-radius: 8px; background: #ffffff !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05); justify-content: flex-start; text-align: left; }
-[class*="st-key-cat_"] button:hover, .st-key-signout button:hover { background: #f8fafc !important; border-color: #cbd5e1 !important; }
-[class*="st-key-cat_"] button:active, .st-key-signout button:active { background: #f1f5f9 !important; }
-[class*="st-key-cat_"] button, [class*="st-key-cat_"] button * { color: #334155 !important; font-size: 14px; font-weight: 500; }
-[class*="st-key-cat_"] button:hover, [class*="st-key-cat_"] button:hover * { color: #0f172a !important; }
-.st-key-signout button { padding: 6px 16px; width: auto; }
-.st-key-signout button, .st-key-signout button * { color: #334155 !important; font-size: 12px; font-weight: 500; }
-.st-key-signout button:active { transform: scale(0.95); }
-
-[class*="st-key-recent_"] button { padding: 6px 8px; border: 0 !important; border-radius: 6px; background: transparent !important; justify-content: flex-start; text-align: left; }
-[class*="st-key-recent_"] button:hover { background: #f1f5f9 !important; }
-[class*="st-key-recent_"] button, [class*="st-key-recent_"] button * { color: #475569 !important; font-size: 14px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Topics and recent conversations: quiet text rows */
+[class*="st-key-cat_"] button, [class*="st-key-recent_"] button { padding: 7px 10px; border: 0 !important; border-radius: 8px; background: transparent !important;
+    box-shadow: none; justify-content: flex-start; text-align: left; }
+[class*="st-key-cat_"] button:hover, [class*="st-key-recent_"] button:hover { background: var(--hover) !important; }
+[class*="st-key-cat_"] button:active, [class*="st-key-recent_"] button:active { background: rgba(31, 41, 51, 0.1) !important; }
+[class*="st-key-cat_"] button, [class*="st-key-cat_"] button *, [class*="st-key-recent_"] button, [class*="st-key-recent_"] button * {
+    color: var(--ink-2) !important; font-size: 14px; font-weight: 400; }
+[class*="st-key-cat_"] button:hover *, [class*="st-key-recent_"] button:hover * { color: var(--ink) !important; }
+[class*="st-key-recent_"] button, [class*="st-key-recent_"] button * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 [class*="st-key-cat_"] button > div, [class*="st-key-sq_"] button > div, [class*="st-key-recent_"] button > div,
 [class*="st-key-cat_"] [data-testid="stMarkdownContainer"], [class*="st-key-sq_"] [data-testid="stMarkdownContainer"], [class*="st-key-recent_"] [data-testid="stMarkdownContainer"] {
@@ -538,101 +542,134 @@ section[data-testid="stSidebar"] > div:first-child { background: #f9fafb !import
 [class*="st-key-cat_"] button, [class*="st-key-sq_"] button, [class*="st-key-recent_"] button { justify-content: flex-start !important; }
 .st-key-new_conv button, .st-key-new_conv button > div { justify-content: center !important; text-align: center; }
 
-/* Admin panel */
-[data-testid="stSidebar"] [data-testid="stExpander"] { border: 1px solid #e2e8f0 !important; border-radius: 8px; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+/* Account, Admin and Audit: collapsible rows */
+[data-testid="stSidebar"] [data-testid="stExpander"] { border: 0 !important; border-radius: 8px; background: transparent; box-shadow: none; }
 [data-testid="stSidebar"] [data-testid="stExpander"] details { border: 0 !important; background: transparent; }
-[data-testid="stSidebar"] [data-testid="stExpander"] summary { padding: 8px 16px; }
-[data-testid="stSidebar"] [data-testid="stExpander"] summary p, [data-testid="stSidebar"] [data-testid="stExpander"] summary span { color: #334155 !important; font-size: 14px; font-weight: 500; }
-[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"], [data-testid="stSidebar"] [data-testid="stExpander"] details > div:last-child { padding: 4px 16px 16px; }
+[data-testid="stSidebar"] [data-testid="stExpander"] summary { padding: 7px 10px; border-radius: 8px; }
+[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover { background: var(--hover); }
+[data-testid="stSidebar"] [data-testid="stExpander"] summary p, [data-testid="stSidebar"] [data-testid="stExpander"] summary span { color: var(--ink-2) !important; font-size: 14px; font-weight: 400; }
+[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"], [data-testid="stSidebar"] [data-testid="stExpander"] details > div:last-child { padding: 8px 6px 14px 10px; }
 [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stVerticalBlock"] { gap: 12px; }
-.hr-admin-note { font-size: 12px; line-height: 1.5; color: #64748b; }
-.hr-admin-meta { font-size: 12px; line-height: 1.5; color: #475569; }
-.hr-admin-meta b { color: #0f172a; font-weight: 600; }
-[data-testid="stFileUploader"] label p { font-size: 12px !important; font-weight: 500; color: #334155 !important; }
-[data-testid="stFileUploaderDropzone"] { background: #f9fafb !important; border: 1px dashed #cbd5e1 !important; border-radius: 8px; padding: 10px 12px; }
-[data-testid="stFileUploaderDropzone"] *, [data-testid="stFileUploader"] small { color: #475569 !important; font-size: 12px; }
-[data-testid="stFileUploaderDropzone"] button { background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 8px; padding: 4px 12px; min-height: 0; }
+.hr-admin-note { font-size: 12px; line-height: 1.5; color: var(--ink-3); }
+.hr-admin-meta { font-size: 12px; line-height: 1.5; color: var(--ink-2); }
+.hr-admin-meta b { color: var(--ink); font-weight: 600; }
+[data-testid="stFileUploader"] label p { font-size: 12px !important; font-weight: 600; color: var(--ink-2) !important; }
+[data-testid="stFileUploaderDropzone"] { background: #ffffff !important; border: 1px dashed var(--line-strong) !important; border-radius: 10px; padding: 10px 12px; }
+[data-testid="stFileUploaderDropzone"] *, [data-testid="stFileUploader"] small { color: var(--ink-2) !important; font-size: 12px; }
+[data-testid="stFileUploaderDropzone"] button { background: #ffffff !important; border: 1px solid var(--line-strong) !important; border-radius: 8px; padding: 4px 12px; min-height: 0; }
 [class*="st-key-admin_"] { width: 100% !important; }
-[class*="st-key-admin_"] button { width: 100%; min-height: 0; padding: 8px 16px; line-height: 20px; border-radius: 8px; justify-content: center !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all .15s ease-out; }
+[class*="st-key-admin_"] button { width: 100%; min-height: 0; padding: 8px 14px; line-height: 20px; border-radius: 10px; justify-content: center !important;
+    background: #ffffff !important; border: 1px solid var(--line-strong) !important; box-shadow: none; transition: background-color .15s, border-color .15s; }
+[class*="st-key-admin_"] button:hover:not(:disabled) { background: var(--tint-2) !important; border-color: var(--pine) !important; }
 [class*="st-key-admin_"] button p { margin: 0 !important; font-size: 14px; font-weight: 500; }
-.st-key-admin_download button, .st-key-admin_rebuild button { background: #ffffff !important; border: 1px solid #e2e8f0 !important; }
-.st-key-admin_download button:hover, .st-key-admin_rebuild button:hover { background: #f8fafc !important; border-color: #cbd5e1 !important; }
-.st-key-admin_download button, .st-key-admin_download button *, .st-key-admin_rebuild button, .st-key-admin_rebuild button * { color: #334155 !important; }
-.st-key-admin_replace button { background: #2d5282 !important; border: 0 !important; }
-.st-key-admin_replace button:hover:not(:disabled) { background: #23416b !important; }
+[class*="st-key-admin_"] button, [class*="st-key-admin_"] button * { color: var(--ink) !important; }
+.st-key-admin_replace button { background: var(--pine) !important; border: 0 !important; }
+.st-key-admin_replace button:hover:not(:disabled) { background: var(--pine-hover) !important; }
 .st-key-admin_replace button, .st-key-admin_replace button * { color: #ffffff !important; }
 [class*="st-key-admin_"] button:disabled { opacity: .5; cursor: not-allowed; }
 
 button:focus:not(:active) { border-color: inherit; }
 
+/* Signed-in user, pinned to the bottom of the sidebar */
+.st-key-side_footer { position: fixed !important; left: 0; bottom: 0; z-index: 20; box-sizing: border-box; width: var(--sidebar-w); margin: 0 !important;
+    padding: 12px 14px 14px; background: var(--mist); border-top: 1px solid var(--line); }
+@media (max-width: 899px) { .st-key-side_footer { width: 100%; } }
+.st-key-side_footer [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; align-items: center; gap: 8px !important; }
+.st-key-side_footer [data-testid="stColumn"], .st-key-side_footer [data-testid="column"] { min-width: 0 !important; width: auto !important; }
+.st-key-side_footer [data-testid="stColumn"]:last-child, .st-key-side_footer [data-testid="column"]:last-child { flex: 0 0 auto !important; display: flex; justify-content: flex-end; }
+.st-key-side_footer [data-testid="stColumn"]:first-child, .st-key-side_footer [data-testid="column"]:first-child { flex: 1 1 auto !important; overflow: hidden; }
+.hr-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hr-avatar { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--tint); color: var(--pine); font-size: 12px; font-weight: 600; }
+.hr-user-text { min-width: 0; }
+.hr-user-name { font-size: 14px; line-height: 18px; font-weight: 600; color: var(--ink); }
+.hr-user-role { font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.hr-user-name, .hr-user-role { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-key-signout button { width: auto; padding: 5px 12px; border: 1px solid var(--line-strong) !important; border-radius: 8px; background: #ffffff !important; box-shadow: none; }
+.st-key-signout button:hover { background: var(--tint-2) !important; border-color: var(--pine) !important; }
+.st-key-signout button, .st-key-signout button * { color: var(--ink) !important; font-size: 13px; font-weight: 500; }
+
 /* ---------- Main area ---------- */
-.block-container, [data-testid="stMainBlockContainer"] { max-width: none !important; padding: 0 40px 7rem !important; }
+.block-container, [data-testid="stMainBlockContainer"] { max-width: none !important; padding: 0 32px 9rem !important; }
 [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] { gap: 0 !important; }
 
-.hr-main-head { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 0 -40px; padding: 26px 120px 26px 40px;
-                background: #ffffff; border-bottom: 1px solid #e2e8f0; animation: fadeInUp .5s cubic-bezier(.16,1,.3,1) 150ms both; }
-.hr-main-brand { display: flex; align-items: center; gap: 16px; }
-.hr-main-title { font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: -0.025em; color: #0f172a; }
-.hr-main-sub { margin-top: 2px; font-size: 14px; line-height: 20px; color: #64748b; }
-.hr-main-note { max-width: 22rem; text-align: right; }
-.hr-main-note-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; }
-.hr-main-note-text { margin-top: 2px; font-size: 13px; line-height: 1.5; color: #64748b; }
-@media (max-width: 1023px) { .hr-main-note { display: none; } }
+/* the brand sits in the sidebar on desktop; on phones the sidebar is closed, so show it here */
+.hr-main-head { display: none; align-items: center; gap: 10px; padding: 18px 0 0 48px; }
+.hr-main-title { font-size: 16px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+@media (max-width: 899px) { .hr-main-head { display: flex; } .block-container, [data-testid="stMainBlockContainer"] { padding: 0 18px 9rem !important; } }
 
-.st-key-body { max-width: 944px; padding-top: 40px; }
+.st-key-body { max-width: var(--column-w); margin: 0 auto; padding-top: 56px; }
+@media (max-width: 899px) { .st-key-body { padding-top: 28px; } }
 .st-key-body, .st-key-body > [data-testid="stVerticalBlock"] { gap: 0 !important; }
-.hr-welcome { margin-bottom: 40px; animation: fadeInUp .5s cubic-bezier(.16,1,.3,1) 220ms both; }
-.hr-welcome-title { font-size: 16px; line-height: 24px; font-weight: 600; color: #1e293b; }
-.hr-welcome-text { margin-top: 8px !important; font-size: 14px; line-height: 1.625; color: #475569; }
-.hr-sq-label { margin-bottom: 16px; animation: fadeInUp .5s cubic-bezier(.16,1,.3,1) 280ms both; }
 
-.st-key-sq_wrap { max-width: 768px; }
-.st-key-sq_wrap, .st-key-sq_wrap > [data-testid="stVerticalBlock"] { gap: 14px !important; }
-.st-key-sq_wrap [data-testid="stHorizontalBlock"] { gap: 14px !important; }
-[class*="st-key-sq_"]:not(.st-key-sq_wrap) { animation: fadeInUp .5s cubic-bezier(.16,1,.3,1) both; }
-.st-key-sq_1 { animation-delay: 340ms !important; } .st-key-sq_2 { animation-delay: 400ms !important; }
-.st-key-sq_3 { animation-delay: 460ms !important; } .st-key-sq_4 { animation-delay: 520ms !important; }
-[class*="st-key-sq_"] button { padding: 14px; border: 1px solid #e2e8f0 !important; border-radius: 12px; background: #ffffff !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03); justify-content: flex-start; text-align: left; transition-duration: .2s; }
-[class*="st-key-sq_"] button:hover { background: rgba(248,250,252,0.8) !important; border-color: #cbd5e1 !important; transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); }
-[class*="st-key-sq_"] button:active { background: #f1f5f9 !important; transform: translateY(0); }
-[class*="st-key-sq_"] button, [class*="st-key-sq_"] button * { color: #334155 !important; font-size: 14px; font-weight: 400; }
-[class*="st-key-sq_"] button:hover, [class*="st-key-sq_"] button:hover * { color: #0f172a !important; }
+.hr-welcome { margin-bottom: 32px; animation: hrFade .4s ease-out both; }
+.hr-welcome-title { font-size: 30px; line-height: 38px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+.hr-welcome-text { margin-top: 6px !important; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+.hr-sq-label { margin-bottom: 10px; }
 
-/* ---------- Chat messages ---------- */
+.st-key-sq_wrap { max-width: var(--column-w); }
+.st-key-sq_wrap, .st-key-sq_wrap > [data-testid="stVerticalBlock"] { gap: 10px !important; }
+.st-key-sq_wrap [data-testid="stHorizontalBlock"] { gap: 10px !important; }
+[class*="st-key-sq_"] button { padding: 12px 14px; border: 1px solid var(--line) !important; border-radius: 12px; background: #ffffff !important;
+    box-shadow: none; justify-content: flex-start; text-align: left; }
+[class*="st-key-sq_"] button:hover { background: var(--tint-2) !important; border-color: var(--pine) !important; }
+[class*="st-key-sq_"] button:active { background: var(--tint) !important; }
+[class*="st-key-sq_"] button, [class*="st-key-sq_"] button * { color: var(--ink) !important; font-size: 14px; font-weight: 400; }
+
+/* ---------- Conversation: replies are plain text, your messages are tinted bubbles ---------- */
 [data-testid="stChatMessageAvatarUser"], [data-testid="stChatMessageAvatarAssistant"], [data-testid="stChatMessageAvatarCustom"] { display: none !important; }
-[data-testid="stChatMessage"] { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03); gap: 0; }
-[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li { font-size: 14px; line-height: 1.625; }
-[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] h1,
-[data-testid="stChatMessage"] h2, [data-testid="stChatMessage"] h3 { color: #334155; }
+[data-testid="stChatMessage"] { background: transparent; border: 0; border-radius: 0; padding: 0; margin: 0 0 24px; box-shadow: none; gap: 0; }
+[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li { font-size: 15px; line-height: 1.65; }
+[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] h1,
+[data-testid="stChatMessage"] h2, [data-testid="stChatMessage"] h3 { color: var(--ink); }
+[data-testid="stChatMessage"] strong { color: var(--ink); font-weight: 600; }
+[data-testid="stChatMessage"] p { margin: 0 0 8px; }
+[data-testid="stChatMessage"] p:last-child { margin-bottom: 0; }
+[data-testid="stChatMessage"] ul, [data-testid="stChatMessage"] ol { margin: 6px 0 0; padding-left: 1.25em; }
+[data-testid="stChatMessage"] li { margin: 4px 0; }
+[data-testid="stChatMessage"] code { padding: 1px 5px; border-radius: 4px; background: var(--mist); color: var(--ink); font-size: 13px; }
 div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]),
-div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) { background: #2d5282; border-color: #2d5282; }
-div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) :is(p, li, strong, span),
-div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) :is(p, li, strong, span) { color: #ffffff !important; }
-[data-testid="stSpinner"], [data-testid="stSpinner"] * { color: #64748b !important; font-size: 14px; }
+div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) { width: fit-content; max-width: min(85%, 560px); margin-left: auto;
+    padding: 10px 16px; background: var(--tint); border-radius: 16px 16px 4px 16px; }
 
-/* ---------- Chat input bar ---------- */
-[data-testid="stBottom"], [data-testid="stBottom"] > div, [data-testid="stBottomBlockContainer"] { background: #0b0f17 !important; }
-[data-testid="stBottomBlockContainer"] { max-width: none !important; padding: 20px 32px !important; }
-[data-testid="stChatInput"] { max-width: 64rem; margin: 0 auto; background: transparent !important; animation: fadeInUp .5s cubic-bezier(.16,1,.3,1) 450ms both; }
-[data-testid="stChatInput"] > div { background: #1e2430 !important; border: 1px solid rgba(51,65,85,0.6) !important; border-radius: 12px !important;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); transition: all .2s; }
-[data-testid="stChatInput"] > div:hover { border-color: #475569 !important; }
-[data-testid="stChatInput"] > div:focus-within { border-color: #94a3b8 !important; box-shadow: 0 0 0 2px rgba(100,116,139,0.5) !important; }
+/* confirm / cancel for a proposed change */
+.st-key-act_wrap { margin-top: 2px; }
+.st-key-act_wrap, .st-key-act_wrap > [data-testid="stVerticalBlock"] { gap: 0 !important; }
+.st-key-act_wrap [data-testid="stHorizontalBlock"] { width: fit-content; gap: 10px !important; }
+.st-key-act_wrap [data-testid="stColumn"], .st-key-act_wrap [data-testid="column"] { flex: 0 0 auto !important; width: auto !important; min-width: 0 !important; }
+[class*="st-key-act_"]:not(.st-key-act_wrap) button { padding: 9px 20px; border-radius: 10px; box-shadow: none; }
+[class*="st-key-act_"] button p { font-size: 14px; font-weight: 600; }
+.st-key-act_confirm button { border: 0 !important; background: var(--pine) !important; }
+.st-key-act_confirm button:hover { background: var(--pine-hover) !important; }
+.st-key-act_confirm button:active { background: var(--pine-press) !important; }
+.st-key-act_confirm button, .st-key-act_confirm button * { color: #ffffff !important; }
+.st-key-act_cancel button { border: 1px solid var(--line-strong) !important; background: #ffffff !important; }
+.st-key-act_cancel button:hover { background: var(--hover) !important; }
+.st-key-act_cancel button, .st-key-act_cancel button * { color: var(--ink) !important; font-weight: 500; }
+
+/* ---------- Composer ---------- */
+[data-testid="stBottom"], [data-testid="stBottom"] > div { background: transparent !important; }
+[data-testid="stBottomBlockContainer"] { max-width: none !important; padding: 14px 32px 16px !important;
+    background: linear-gradient(to top, #ffffff 72%, rgba(255, 255, 255, 0)) !important; }
+[data-testid="stBottomBlockContainer"]::after { content: "Runs on your organisation's own servers. Changes always ask for your confirmation first.";
+    display: block; max-width: var(--column-w); margin: 10px auto 0; text-align: center; font-size: 12px; line-height: 16px; color: var(--ink-3); }
+[data-testid="stChatInput"] { max-width: var(--column-w); margin: 0 auto; background: transparent !important; }
+[data-testid="stChatInput"] > div { background: #ffffff !important; border: 1px solid var(--line-strong) !important; border-radius: 16px !important;
+    box-shadow: 0 2px 12px rgba(31, 41, 51, 0.06); transition: border-color .15s, box-shadow .15s; }
+[data-testid="stChatInput"] > div:hover { border-color: var(--ink-3) !important; }
+[data-testid="stChatInput"] > div:focus-within { border-color: var(--pine) !important; box-shadow: 0 0 0 3px var(--tint) !important; }
 [data-testid="stChatInput"] [data-baseweb="textarea"], [data-testid="stChatInput"] [data-baseweb="base-input"] { background: transparent !important; border: 0 !important; }
-[data-testid="stChatInput"] textarea { background: transparent !important; color: #e2e8f0 !important; -webkit-text-fill-color: #e2e8f0;
-    font-size: 14px !important; line-height: 20px; padding: 14px 56px 14px 20px !important; }
-[data-testid="stChatInput"] textarea::placeholder { color: #94a3b8 !important; -webkit-text-fill-color: #94a3b8; opacity: 1; }
-[data-testid="stChatInputSubmitButton"] { background: #334155 !important; color: #cbd5e1 !important; border-radius: 8px !important; transition: all .15s; }
-[data-testid="stChatInputSubmitButton"]:hover { background: #475569 !important; color: #ffffff !important; }
-[data-testid="stChatInputSubmitButton"]:disabled { background: #334155 !important; color: #94a3b8 !important; opacity: .7; }
+[data-testid="stChatInput"] textarea { background: transparent !important; color: var(--ink) !important; -webkit-text-fill-color: var(--ink); caret-color: var(--pine);
+    font-size: 15px !important; line-height: 22px; padding: 14px 56px 14px 18px !important; }
+[data-testid="stChatInput"] textarea::placeholder { color: var(--ink-3) !important; -webkit-text-fill-color: var(--ink-3); opacity: 1; }
+[data-testid="stChatInputSubmitButton"] { background: var(--pine) !important; color: #ffffff !important; border-radius: 10px !important; transition: background-color .15s; }
+[data-testid="stChatInputSubmitButton"]:hover { background: var(--pine-hover) !important; color: #ffffff !important; }
+[data-testid="stChatInputSubmitButton"]:disabled { background: var(--line) !important; color: var(--ink-3) !important; opacity: 1; }
+@media (max-width: 899px) { [data-testid="stBottomBlockContainer"] { padding: 12px 14px 14px !important; } }
 """
 
 # External font loading is off by default (it sends every visitor's IP to Google on each page view).
-# The font stack falls back to the system UI font. Set HR_ALLOW_EXTERNAL_FONTS=1 to turn Inter back on.
+# The font stack falls back to the system UI font. Set HR_ALLOW_EXTERNAL_FONTS=1 to load Figtree from Google Fonts.
 if os.environ.get("HR_ALLOW_EXTERNAL_FONTS") != "1":
     BASE_CSS = re.sub(r"@import url\('https://fonts\.googleapis\.com[^']*'\);\n?", "", BASE_CSS)
 
@@ -662,15 +699,18 @@ def archive_current_conversation():
 # =====================================================================
 LOGIN_PANEL_HTML = (
     '<div class="hr-lg-panel"><div class="hr-lg-panel-inner">'
-    '<div class="hr-lg-chip">HR Policy Assistant</div>'
-    '<div><div class="hr-lg-h">Answers from your company policy, in seconds.</div>'
-    '<div class="hr-lg-p">Ask about leave, benefits, reimbursement, working hours and workplace policies. '
-    'Answers are drawn from your company\'s policy document.</div>'
-    '<div class="hr-lg-topics"><span>Leave &amp; Attendance</span><span>Benefits</span><span>Reimbursement</span>'
-    '<span>Working Hours</span><span>Workplace Policies</span></div></div>'
-    '<div class="hr-lg-card"><div class="hr-lg-card-dot"></div><div>'
-    '<div class="hr-lg-card-title">Company policy, benefits and workplace information</div>'
-    '<div class="hr-lg-card-sub">Company data stays within your organization\'s infrastructure.</div></div></div>'
+    '<div><div class="hr-lg-h">Policy answers and everyday HR tasks, in one conversation.</div>'
+    '<div class="hr-lg-p">Ask about leave, benefits and workplace rules, see who is away and when they are back, '
+    'or request time off. Policy answers come from your company\'s own policy document.</div></div>'
+    '<div class="hr-demo">'
+    '<div class="hr-demo-u">Is Bob on leave? When is he back?</div>'
+    '<div class="hr-demo-b"><b>Bob Manager</b> is on leave until Friday and is expected back on Monday.</div>'
+    '<div class="hr-demo-u">Apply for leave next week</div>'
+    '<div class="hr-demo-b">I\'ll request annual leave for next Monday to Friday (5 working days). '
+    'It will go to your manager for approval. Confirm?'
+    '<div class="hr-demo-act"><span>Confirm</span><span>Cancel</span></div></div>'
+    '</div>'
+    '<div class="hr-lg-note">Runs on your organisation\'s own servers. Nothing changes without your confirmation.</div>'
     '</div></div>'
 )
 
@@ -703,7 +743,7 @@ def render_login_view():
 
             if stage == "signin":
                 st.markdown(
-                    '<div><div class="hr-lg-eyebrow">HR Policy Assistant</div>'
+                    '<div>'
                     '<div class="hr-lg-title">Sign in to your account</div>'
                     '<div class="hr-lg-sub">Use your employee ID and password to continue.</div></div>',
                     unsafe_allow_html=True,
@@ -731,7 +771,7 @@ def render_login_view():
 
             elif stage == "mfa":
                 st.markdown(
-                    '<div><div class="hr-lg-eyebrow">HR Policy Assistant</div>'
+                    '<div>'
                     '<div class="hr-lg-title">Two-step verification</div>'
                     '<div class="hr-lg-sub">Enter the 6-digit code from your authenticator app.</div></div>',
                     unsafe_allow_html=True,
@@ -753,7 +793,7 @@ def render_login_view():
 
             elif stage == "change_password":
                 st.markdown(
-                    '<div><div class="hr-lg-eyebrow">HR Policy Assistant</div>'
+                    '<div>'
                     '<div class="hr-lg-title">Choose a new password</div>'
                     '<div class="hr-lg-sub">Before you continue, set your own password. Use at least 12 characters.</div></div>',
                     unsafe_allow_html=True,
@@ -789,8 +829,8 @@ def render_login_view():
 SUGGESTED_QUESTIONS = [
     "How many annual leaves can I take?",
     "What is the reimbursement process?",
-    "What are the working hours?",
-    "What is the work-from-home policy?",
+    "Who is on leave today?",
+    "What is my leave balance?",
 ]
 
 CATEGORIES = [
@@ -984,6 +1024,17 @@ def _answer_turn(user, prompt):
     return "Policy database unavailable. Ensure `Policy.pdf` and Ollama are configured.", "rag"
 
 
+def _greeting(name: str) -> str:
+    hour = datetime.now().hour
+    part = "morning" if hour < 12 else "afternoon" if hour < 18 else "evening"
+    first = (name or "").split()[0] if (name or "").split() else ""
+    return f"Good {part}, {first}" if first else f"Good {part}"
+
+
+def _initials(name: str) -> str:
+    return "".join(p[0] for p in (name or "").split()[:2]).upper() or "?"
+
+
 def render_main_view():
     user = st.session_state.user
     inject_css(BASE_CSS + MAIN_CSS)
@@ -996,7 +1047,8 @@ def render_main_view():
     with st.sidebar:
         with st.container(key="side_root"):
             st.markdown(
-                '<div><div class="hr-brand-title">HR Assistant</div><div class="hr-brand-sub">GlobalCorp</div></div>',
+                '<div class="hr-brand"><span class="hr-mark sm">G</span><div>'
+                '<div class="hr-brand-title">HR Assistant</div><div class="hr-brand-sub">GlobalCorp</div></div></div>',
                 unsafe_allow_html=True,
             )
 
@@ -1009,7 +1061,7 @@ def render_main_view():
             with st.container(key="side_recent"):
                 empty_note = "" if st.session_state.history else '<div class="hr-muted">No earlier conversations yet.</div>'
                 st.markdown(
-                    f'<div><div class="hr-eyebrow">Recent Conversations</div>{empty_note}</div>',
+                    f'<div><div class="hr-label">Recent</div>{empty_note}</div>',
                     unsafe_allow_html=True,
                 )
                 for i, convo in enumerate(st.session_state.history):
@@ -1026,7 +1078,7 @@ def render_main_view():
                         st.rerun()
 
             with st.container(key="side_cats"):
-                st.markdown('<div class="hr-eyebrow">Policy Categories</div>', unsafe_allow_html=True)
+                st.markdown('<div class="hr-label">Topics</div>', unsafe_allow_html=True)
                 for i, cat in enumerate(CATEGORIES):
                     if st.button(cat, key=f"cat_{i}"):
                         st.session_state.pending_prompt = f"Tell me about {cat.lower()} policies."
@@ -1042,9 +1094,10 @@ def render_main_view():
                 info_col, btn_col = st.columns([5, 3], vertical_alignment="center")
                 with info_col:
                     st.markdown(
-                        f'<div><div class="hr-user-name">{html.escape(user["name"])}</div>'
-                        f'<div class="hr-user-role">{html.escape(user["employee_id"])} · '
-                        f'{html.escape(ROLE_LABELS.get(user["role"], user["role"]))}</div></div>',
+                        f'<div class="hr-user"><span class="hr-avatar">{html.escape(_initials(user["name"]))}</span>'
+                        f'<div class="hr-user-text"><div class="hr-user-name">{html.escape(user["name"])}</div>'
+                        f'<div class="hr-user-role">{html.escape(ROLE_LABELS.get(user["role"], user["role"]))} '
+                        f'({html.escape(user["employee_id"])})</div></div></div>',
                         unsafe_allow_html=True,
                     )
                 with btn_col:
@@ -1053,16 +1106,12 @@ def render_main_view():
 
     # --- HEADER ---
     st.markdown(
-        '<div class="hr-main-head"><div class="hr-main-brand"><span class="hr-mark">G</span><div>'
-        '<div class="hr-main-title">HR Policy Assistant</div>'
-        '<div class="hr-main-sub">Company policy, benefits and workplace information</div></div></div>'
-        '<div class="hr-main-note"><div class="hr-main-note-label">Data privacy</div>'
-        '<div class="hr-main-note-text">Company data stays within your organization\'s infrastructure.</div></div></div>',
+        '<div class="hr-main-head"><span class="hr-mark sm">G</span><div class="hr-main-title">HR Assistant</div></div>',
         unsafe_allow_html=True,
     )
 
     # --- CHAT INPUT & TRIGGER (resolved first so the welcome view can step aside) ---
-    prompt = st.chat_input("Ask about company policies, leave, benefits, reimbursement, or working hours...")
+    prompt = st.chat_input("Ask about a policy, check who's away, or request leave...")
 
     if not prompt and st.session_state.pending_prompt:
         prompt = st.session_state.pending_prompt
@@ -1084,11 +1133,11 @@ def render_main_view():
         # Welcome + suggested questions (only on an empty conversation)
         if not st.session_state.messages and not prompt:
             st.markdown(
-                '<div class="hr-welcome"><div class="hr-welcome-title">How can we help?</div>'
-                '<p class="hr-welcome-text">Ask about company policies, leave, benefits, reimbursement, or working hours.</p></div>',
+                f'<div class="hr-welcome"><div class="hr-welcome-title">{html.escape(_greeting(user["name"]))}</div>'
+                '<p class="hr-welcome-text">Ask a policy question, check who is away, or take care of your leave.</p></div>',
                 unsafe_allow_html=True,
             )
-            st.markdown('<div class="hr-eyebrow light hr-sq-label">Suggested Questions</div>', unsafe_allow_html=True)
+            st.markdown('<div class="hr-label hr-sq-label">Try asking</div>', unsafe_allow_html=True)
 
             with st.container(key="sq_wrap"):
                 for row in range(2):
@@ -1119,14 +1168,14 @@ def render_main_view():
 
         # Confirm / cancel for a proposed change (leave request, record update, approval)
         if st.session_state.pending_action:
-            with st.container(key="sq_wrap"):
+            with st.container(key="act_wrap"):
                 c1, c2 = st.columns(2)
                 with c1:
-                    if st.button("Confirm", key="sq_confirm"):
+                    if st.button("Confirm", key="act_confirm"):
                         st.session_state.pending_click = "confirm"
                         st.rerun()
                 with c2:
-                    if st.button("Cancel", key="sq_cancel"):
+                    if st.button("Cancel", key="act_cancel"):
                         st.session_state.pending_click = "cancel"
                         st.rerun()
 

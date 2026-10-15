@@ -77,6 +77,21 @@ Settings (environment variables, see `.env.example`): `HR_DATA_DIR`, `HR_IDLE_TI
 `HR_SESSION_MAX_HOURS` (8), `HR_ALLOW_EXTERNAL_FONTS` (off).
 Streamlit hardening (upload limit, XSRF, no stack traces) is in `.streamlit/config.toml`.
 
+## Changing the look
+
+The whole interface runs on a few colour and size variables at the top of `BASE_CSS` in `app4.py`:
+
+```css
+--pine: #0b6b5d;      /* the accent: buttons, focus rings, send button */
+--tint: #e8f2ef;      /* your message bubbles, soft highlights */
+--mist: #f3f5f4;      /* sidebar background */
+--ink: #1f2933;       /* main text */
+--sidebar-w: 17.5rem; --column-w: 760px;
+```
+
+Change `--pine`, `--pine-hover`, `--pine-press` and `--tint` together to re-colour the app. The default font is your
+system font; set `HR_ALLOW_EXTERNAL_FONTS=1` to load Figtree instead.
+
 ## Deploying for real people
 
 This is a reference project. Before using it with real data, read [SECURITY.md](SECURITY.md). In short: put it behind a

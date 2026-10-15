@@ -3,6 +3,17 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Redesigned the interface. Calmer, lighter look on a single colour system (all tokens are variables at the top of `BASE_CSS`).
+- Conversation reads like a document: replies are plain text, your messages are soft tinted bubbles, and the composer is a light floating input instead of a dark bar.
+- Sidebar simplified into quiet text rows with sentence-case section labels, an avatar for the signed-in user, and collapsible Account, Admin and Audit rows.
+- Welcome screen greets you by name and suggests real tasks ("Who is on leave today?", "What is my leave balance?") alongside policy questions.
+- Sign-in page shows a sample conversation instead of decorative graphics; Confirm and Cancel have their own action styling.
+- The sidebar collapses on phones (it was forced open at every width); entrance animations and hover lifts were removed.
+- `HR_ALLOW_EXTERNAL_FONTS=1` now loads Figtree (was Inter). The default is still the system font, with no external requests.
+
 ## [1.0.0] - 2026-10-10
 
 First public release. It builds on the original single-file `app4.py` prototype.
