@@ -120,6 +120,10 @@ def init_hr_db() -> None:
             );
             CREATE INDEX IF NOT EXISTS idx_leave_emp ON leave_requests(employee_id, status, end_date);
             CREATE TABLE IF NOT EXISTS holidays (date TEXT PRIMARY KEY, name TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS user_prefs (
+                employee_id TEXT PRIMARY KEY,
+                theme TEXT NOT NULL DEFAULT 'light' CHECK(theme IN ('light','dark'))
+            );
             """
         )
         conn.commit()
@@ -493,21 +497,74 @@ def my_requests(actor_id: str, limit: int = 8) -> list:
 
 
 def pending_for_approval(actor_id: str) -> list:
+    """Requests this person may decide, oldest start first. Each carries context for the decision:
+    the requester's department, what is left of that leave type once this request is granted, and
+    which department colleagues are already away on those dates."""
     actor = _actor(actor_id)
     if not actor or actor["role"] not in ("hr_admin", "manager"):
         return []
+    base = ("SELECT l.id, l.employee_id, l.leave_type, l.start_date, l.end_date, l.days, l.reason, l.status, a.name "
+            "FROM leave_requests l JOIN auth.employees a ON a.employee_id=l.employee_id WHERE l.status='pending' AND ")
+    out = []
     with hr_conn() as conn:
         if actor["role"] == "hr_admin":
-            rows = conn.execute(
-                "SELECT l.id, l.employee_id, l.leave_type, l.start_date, l.end_date, l.days, l.reason, l.status, a.name "
-                "FROM leave_requests l JOIN auth.employees a ON a.employee_id=l.employee_id "
-                "WHERE l.status='pending' AND l.employee_id != ? ORDER BY l.start_date LIMIT 50", (actor_id,)).fetchall()
+            rows = conn.execute(base + "l.employee_id != ? ORDER BY l.start_date LIMIT 50", (actor_id,)).fetchall()
         else:
-            rows = conn.execute(
-                "SELECT l.id, l.employee_id, l.leave_type, l.start_date, l.end_date, l.days, l.reason, l.status, a.name "
-                "FROM leave_requests l JOIN auth.employees a ON a.employee_id=l.employee_id "
-                "WHERE l.status='pending' AND a.manager_id=? ORDER BY l.start_date LIMIT 50", (actor_id,)).fetchall()
-    return [{**_row_request(r[:8]), "name": r[8]} for r in rows]
+            rows = conn.execute(base + "a.manager_id=? ORDER BY l.start_date LIMIT 50", (actor_id,)).fetchall()
+        for r in rows:
+            req = {**_row_request(r[:8]), "name": r[8], "department": None, "remaining": None, "also_away": []}
+            d = conn.execute("SELECT department FROM employee_profile WHERE employee_id=?", (req["employee_id"],)).fetchone()
+            req["department"] = d[0] if d else None
+            if req["leave_type"] != "unpaid":
+                year = req["start"].year
+                used = _sum_days(conn, req["employee_id"], req["leave_type"], year, "approved")
+                held = _sum_days(conn, req["employee_id"], req["leave_type"], year, "pending")
+                req["remaining"] = _allotment(conn, req["employee_id"], year, req["leave_type"]) - used - held
+            if req["department"]:
+                req["also_away"] = [n[0] for n in conn.execute(
+                    "SELECT DISTINCT a.name FROM leave_requests l JOIN auth.employees a ON a.employee_id=l.employee_id "
+                    "JOIN employee_profile p ON p.employee_id=l.employee_id WHERE l.status='approved' AND a.active=1 "
+                    "AND p.department=? AND l.employee_id != ? AND l.start_date <= ? AND l.end_date >= ? ORDER BY a.name LIMIT 5",
+                    (req["department"], req["employee_id"], req["end"].isoformat(), req["start"].isoformat()))]
+            out.append(req)
+    return out
+
+
+def leave_days_by_month(employee_id: str, year: Optional[int] = None) -> list:
+    """Approved working days of leave in each month of `year` (12 numbers)."""
+    year = year or today().year
+    out = [0.0] * 12
+    with hr_conn() as conn:
+        hol = _holidays(conn)
+        rows = conn.execute(
+            "SELECT start_date, end_date FROM leave_requests WHERE employee_id=? AND status='approved' "
+            "AND start_date <= ? AND end_date >= ?", (employee_id, f"{year}-12-31", f"{year}-01-01")).fetchall()
+    for s_, e_ in rows:
+        d, end = max(_d(s_), date(year, 1, 1)), min(_d(e_), date(year, 12, 31))
+        while d <= end:
+            if is_working_day(d, hol):
+                out[d.month - 1] += 1
+            d += timedelta(days=1)
+    return out
+
+
+THEMES = ("light", "dark")
+
+
+def get_theme(employee_id: str) -> str:
+    with hr_conn() as conn:
+        r = conn.execute("SELECT theme FROM user_prefs WHERE employee_id=?", (employee_id,)).fetchone()
+    return r[0] if r and r[0] in THEMES else "light"
+
+
+def set_theme(employee_id: str, theme: str) -> bool:
+    if theme not in THEMES or not sec.get_user(employee_id):
+        return False
+    with hr_conn() as conn:
+        with conn:
+            conn.execute("INSERT INTO user_prefs (employee_id, theme) VALUES (?,?) "
+                         "ON CONFLICT(employee_id) DO UPDATE SET theme=excluded.theme", (employee_id, theme))
+    return True
 
 
 # --------------------------------------------------------------------------- profile updates

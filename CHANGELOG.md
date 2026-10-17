@@ -6,13 +6,17 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- Personal dashboard for every employee: leave left by type, pending requests, who is away this week, leave taken by month, and a request form.
+- Approvals from the dashboard for managers and HR (Approve and Reject buttons with the requester's remaining balance and which department colleagues are already away).
+- Light and dark mode with a switch in the top bar, remembered per person.
+- Sidebar menu to move between the Dashboard and the Assistant.
 - Bulk import of real company data from CSV: `manage.py import-employees`, `import-holidays`, `import-allotments`, `import-leave`. Every file is validated in full first, errors list their line numbers, nothing is written if any row fails, and `--dry-run` previews the result. See `docs/IMPORTING_DATA.md` and the templates in `docs/import-templates/`.
 - `HR_SEED_DEMO=0` stops demo data being created; `HR_DEFAULT_ALLOTMENT` sets the company's yearly leave days.
 
 ### Changed
 - Salary band accepts any short code (up to 12 letters, digits, dots or dashes) instead of only B1 to B9.
+- Dashboard-style layout: a soft page background with bordered cards, one teal accent that is deeper in light mode and brighter in dark mode. Both themes share one set of variables (`BASE_CSS` and `DARK_CSS`).
 
-### Changed
 - Redesigned the interface. Calmer, lighter look on a single colour system (all tokens are variables at the top of `BASE_CSS`).
 - Conversation reads like a document: replies are plain text, your messages are soft tinted bubbles, and the composer is a light floating input instead of a dark bar.
 - Sidebar simplified into quiet text rows with sentence-case section labels, an avatar for the signed-in user, and collapsible Account, Admin and Audit rows.
@@ -31,7 +35,7 @@ First public release. It builds on the original single-file `app4.py` prototype.
 - Role-based visibility: directory, manager and full views of an employee record.
 - Optional two-step sign-in (TOTP), password change screen, password policy.
 - Append-only, hash-chained audit log with an admin viewer and `manage.py verify-audit`.
-- `manage.py` operator tool, unit tests (43), GitHub Actions workflow.
+- `manage.py` operator tool, unit tests (43 at the time), GitHub Actions workflow.
 
 ### Security
 - Removed start-up accounts that reset to known passwords on every launch (`INSERT OR REPLACE` backdoor). Legacy `ChangeMe!N` accounts are rotated on upgrade.

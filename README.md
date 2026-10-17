@@ -12,6 +12,9 @@ Everything runs locally with [Ollama](https://ollama.com), and every change need
 
 ## Features
 
+- **Personal dashboard** for everyone: leave left by type, pending requests, who is away this week, a leave-by-month chart and a request form
+- **Approve from the dashboard:** managers (their team) and HR (everyone else) see a "Waiting for your approval" panel with Approve and Reject buttons, the person's remaining balance and who else in their department is away
+- **Light and dark mode**, switched in the top bar and remembered per person
 - **Policy Q&A** over your PDF (Chroma + Ollama), with answers stripped of links, images and HTML
 - **Who is away?** "Is Carol on leave?", "When will Bob be back?", "Who is on leave next week?" (return dates skip weekends and holidays and merge back-to-back leave)
 - **Leave workflow:** apply, cancel, approve, reject, balances, pending-approval lists; nobody approves their own request
@@ -42,6 +45,22 @@ streamlit run app4.py
 2. One-time passwords are written to `initial_credentials.txt` (owner-only). Find `E001` (HR admin), `E002` (manager) or `E003` (employee), sign in, and choose a new password. **Delete the file when you have handed the passwords out.**
 3. Open http://localhost:8501 and try the examples below.
 
+## The dashboard
+
+Everyone lands on their own dashboard. The sidebar menu switches between **Dashboard** and **Assistant** (the chat).
+
+| Panel | Who sees it |
+|---|---|
+| Four cards: annual, sick and casual leave left (with a bar for days taken) and your pending requests | everyone |
+| **Waiting for your approval**: Approve and Reject buttons, with the requester's days left and who in their department is already away | managers (their direct reports), HR admins (everyone except themselves) |
+| **My leave requests** with status; cancel a pending or future request | everyone |
+| **Request leave** form (dates, type, reason) | everyone |
+| **Away this week** with return dates | everyone |
+| **Leave taken by month** chart, current month highlighted | everyone |
+
+The **Light / Dark** switch is at the top right of every page. Approvals made here follow the same rules as in chat: you
+cannot approve your own request, and managers can only decide for their direct reports. Every decision is written to the audit log.
+
 ## What you can ask
 
 | Ask | Who can |
@@ -70,7 +89,7 @@ python manage.py reset-password E001   # one-time password, forced change at nex
 python manage.py reset-mfa E001        # lost authenticator device
 python manage.py unlock E001           # clear a lockout
 python manage.py verify-audit          # check the audit log was not altered
-make test                              # 43 unit tests, standard library only, no Ollama needed
+make test                              # 69 unit tests, standard library only, no Ollama needed
 ```
 
 Settings (environment variables, see `.env.example`): `HR_DATA_DIR`, `HR_IDLE_TIMEOUT_MIN` (30),
