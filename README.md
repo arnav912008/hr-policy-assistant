@@ -1,6 +1,6 @@
 # HR Policy Assistant
 
-[![tests](https://github.com/<your-username>/hr-policy-assistant/actions/workflows/tests.yml/badge.svg)](https://github.com/<your-username>/hr-policy-assistant/actions/workflows/tests.yml)
+[![tests](https://github.com/arnav912008/hr-policy-assistant/actions/workflows/tests.yml/badge.svg)](https://github.com/arnav912008/hr-policy-assistant/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
