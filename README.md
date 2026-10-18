@@ -32,7 +32,7 @@ Requires Python 3.12 and [Ollama](https://ollama.com).
 ollama pull nomic-embed-text
 ollama pull llama3.2:3b
 
-git clone https://github.com/<your-username>/hr-policy-assistant.git
+git clone https://github.com/arnav912008/hr-policy-assistant.git
 cd hr-policy-assistant
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
