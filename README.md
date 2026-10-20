@@ -32,14 +32,16 @@ Requires Python 3.12 and [Ollama](https://ollama.com).
 ollama pull nomic-embed-text
 ollama pull llama3.2:3b
 
-git clone https://github.com/arnav912008/hr-policy-assistant.git
+git clone https://github.com/<your-username>/hr-policy-assistant.git
 cd hr-policy-assistant
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 cp /path/to/your/Policy.pdf .                       # your policy document
-streamlit run app4.py
+python -m streamlit run app4.py
 ```
+
+Use `python -m pip` and `python -m streamlit` (not bare `pip` / `streamlit`) so both use the same Python.
 
 1. On first start the app creates its databases and seeds the demo company.
 2. One-time passwords are written to `initial_credentials.txt` (owner-only). Find `E001` (HR admin), `E002` (manager) or `E003` (employee), sign in, and choose a new password. **Delete the file when you have handed the passwords out.**
@@ -93,7 +95,7 @@ make test                              # 69 unit tests, standard library only, n
 ```
 
 Settings (environment variables, see `.env.example`): `HR_DATA_DIR`, `HR_IDLE_TIMEOUT_MIN` (30),
-`HR_SESSION_MAX_HOURS` (8), `HR_ALLOW_EXTERNAL_FONTS` (off).
+`HR_SESSION_MAX_HOURS` (8).
 Streamlit hardening (upload limit, XSRF, no stack traces) is in `.streamlit/config.toml`.
 
 ## Changing the look
@@ -108,8 +110,19 @@ The whole interface runs on a few colour and size variables at the top of `BASE_
 --sidebar-w: 17.5rem; --column-w: 760px;
 ```
 
-Change `--pine`, `--pine-hover`, `--pine-press` and `--tint` together to re-colour the app. The default font is your
-system font; set `HR_ALLOW_EXTERNAL_FONTS=1` to load Figtree instead.
+Change `--pine`, `--pine-hover`, `--pine-press` and `--tint` together to re-colour the app. Fonts (DM Sans, Fraunces and Caveat, all
+SIL Open Font License) are bundled in `static/fonts` and served by Streamlit (`enableStaticServing` in
+`.streamlit/config.toml`), so the app makes no external requests.
+
+## Troubleshooting
+
+- **"No module named langchain_community" (or another package):** the packages were installed into a different Python
+  than the one running the app. Activate the virtual environment, then run `python -m pip install -r requirements.txt`
+  and `python -m streamlit run app4.py`. `python -m pip show langchain-community` should print a version.
+- **The install fails (often on `chromadb`):** use Python 3.12 (`python --version`). Very new Python releases can lack
+  ready-made packages, and on Windows some packages need the free "Microsoft C++ Build Tools".
+- **The chat answers with an error about Ollama:** install [Ollama](https://ollama.com), keep it running, and run
+  both `ollama pull` commands above.
 
 ## Using it for a real company
 
