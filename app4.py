@@ -7,6 +7,7 @@ import tempfile
 import threading
 import time
 import uuid
+from urllib.parse import quote
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -38,7 +39,7 @@ MAX_PDF_PAGES = 300
 POLICY_VERSIONS_DIR = Path("./policy_versions")
 KEEP_POLICY_VERSIONS = 10
 
-ROLE_LABELS = {"employee": "Employee", "manager": "Manager", "hr_admin": "HR Admin"}
+ROLE_LABELS = {"employee": "Employee", "manager": "Manager", "hr_admin": "HR administrator"}
 
 st.set_page_config(
     page_title="HR Policy Assistant",
@@ -369,40 +370,94 @@ def _sign_out():
     st.rerun()
 
 
+
 # =====================================================================
-# UI THEME  (styled after login.html / code.html)
+# ICONS  (inline SVG, so the app makes no external requests)
+# =====================================================================
+_ICONS = {
+    "grid": "<rect x='3' y='3' width='7' height='7' rx='1.5'/><rect x='14' y='3' width='7' height='7' rx='1.5'/><rect x='3' y='14' width='7' height='7' rx='1.5'/><rect x='14' y='14' width='7' height='7' rx='1.5'/>",
+    "chat": "<path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/><path d='M8 8h8M8 12h5'/>",
+    "file": "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/><path d='M14 3v5h5M9 13h6M9 17h6'/>",
+    "filecheck": "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/><path d='M14 3v5h5'/><path d='m9 15 2 2 4-4'/>",
+    "shield": "<path d='M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z'/>",
+    "shieldcheck": "<path d='M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z'/><path d='m9 12 2 2 4-4'/>",
+    "user": "<circle cx='12' cy='8' r='4'/><path d='M4 21a8 8 0 0 1 16 0'/>",
+    "lock": "<rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V8a4 4 0 0 1 8 0v3'/>",
+    "chevron": "<path d='m9 6 6 6-6 6'/>",
+    "logout": "<path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><path d='M16 17l5-5-5-5M21 12H9'/>",
+    "help": "<circle cx='12' cy='12' r='9'/><path d='M9.5 9a2.5 2.5 0 0 1 5 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01'/>",
+    "arrow": "<path d='M5 12h14M13 6l6 6-6 6'/>",
+    "bot": "<rect x='4' y='8' width='16' height='11' rx='3'/><path d='M12 8V4M9 13h.01M15 13h.01M9 16h6'/>",
+}
+
+
+def _svg(name: str, size: int = 20, color: str = "currentColor", sw: float = 1.8) -> str:
+    return (f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' viewBox='0 0 24 24' fill='none' "
+            f"stroke='{color}' stroke-width='{sw}' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'>{_ICONS[name]}</svg>")
+
+
+def _svg_url(name: str, color: str = "black") -> str:
+    return 'url("data:image/svg+xml,' + quote(_svg(name, 24, color), safe="") + '")'
+
+
+def _mask_css(selector: str, name: str, size: int = 22) -> str:
+    """Draw an icon in the current text colour as the ::before of `selector`."""
+    u = _svg_url(name)
+    selector = ", ".join(f"{part.strip()}::before" for part in selector.split(","))
+    return (f"{selector} {{ content: ''; display: inline-block; flex: 0 0 auto; width: {size}px; height: {size}px; "
+            f"background: currentColor; -webkit-mask: {u} center / contain no-repeat; mask: {u} center / contain no-repeat; }}\n")
+
+
+# =====================================================================
+# UI THEME  (GlobalCorp design: cream, indigo and sun-yellow)
 # =====================================================================
 BASE_CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap');
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('/app/static/fonts/dm-sans-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url('/app/static/fonts/dm-sans-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url('/app/static/fonts/dm-sans-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 700; font-display: swap; src: url('/app/static/fonts/dm-sans-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 600; font-display: swap; src: url('/app/static/fonts/fraunces-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 700; font-display: swap; src: url('/app/static/fonts/fraunces-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 800; font-display: swap; src: url('/app/static/fonts/fraunces-latin-800-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Caveat'; font-style: normal; font-weight: 600; font-display: swap; src: url('/app/static/fonts/caveat-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Caveat'; font-style: normal; font-weight: 700; font-display: swap; src: url('/app/static/fonts/caveat-latin-700-normal.woff2') format('woff2'); }
 
 /* ---------- Design tokens: change the look here ---------- */
-/* Light theme. DARK_CSS (below) overrides these same variables. */
+/* Light theme. DARK_CSS (below) overrides these same variables. --pine is the main accent (indigo). */
 :root {
-    --canvas: #f4f6f5;      /* page background */
-    --surface: #ffffff;     /* cards, inputs, buttons */
-    --side: #ffffff;        /* sidebar */
-    --mist: #eef1ef;        /* quiet fills: bars, code, chips */
-    --ink: #1f2933;
-    --ink-2: #4a5565;
-    --ink-3: #667085;
-    --line: #e1e6e3;
-    --line-strong: #c9d1cc;
-    --pine: #0b6b5d;        /* the accent */
-    --pine-hover: #095649;
-    --pine-press: #074439;
+    --canvas: #f5f3ec;      /* page background */
+    --surface: #fffdf8;     /* cards, inputs, buttons */
+    --side: #fbf9f2;        /* sidebar */
+    --mist: #dfe3f7;        /* quiet fills: bars, code, chips */
+    --ink: #151a33;
+    --ink-2: #565b73;
+    --ink-3: #868ba0;
+    --line: #e9e5d8;
+    --line-strong: #d6d1c0;
+    --pine: #3f5bd0;        /* the accent */
+    --pine-hover: #364fb8;
+    --pine-press: #2d429b;
     --on-pine: #ffffff;     /* text on the accent */
-    --tint: #e8f2ef;
-    --tint-2: #f3f9f7;
-    --hover: rgba(31, 41, 51, 0.06);
-    --warn-fg: #92400e;
-    --warn-bg: #fef3c7;
+    --tint: #e6eafb;
+    --tint-2: #f1f3fd;
+    --hover: rgba(21, 26, 51, 0.06);
+    --warn-fg: #7a5200;
+    --warn-bg: #fbe8a6;
     --bad-fg: #b42318;
-    --bad-bg: #fee4e2;
-    --shadow: 0 1px 2px rgba(31, 41, 51, 0.04);
-    --sidebar-w: 17.5rem;
+    --bad-bg: #fde4e1;
+    --shadow: 0 3px 0 rgba(21, 26, 51, 0.07);
+    --edge: #1a2257;        /* hard offset shadow under buttons and active items */
+    --sun: #f7c948;         /* yellow accent */
+    --orange: #f59e0b;
+    --c-lav: #e6e8fb;       /* pastel card fills */
+    --c-butter: #fbf0c4;
+    --c-mint: #d8f0e6;
+    --c-rose: #fbe1dc;
+    --sidebar-w: 19.5rem;
     --column-w: 760px;
     --page-w: 1120px;
-    --font: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
 }
 
 html, body, .stApp, .stApp p, .stApp label, .stApp button, .stApp input,
@@ -437,9 +492,10 @@ footer, [data-testid="stDecoration"], #stDecoration { display: none !important; 
 /* shared small text styles and brand mark */
 .hr-label { font-size: 12px; font-weight: 600; line-height: 16px; color: var(--ink-3); }
 .hr-muted { font-size: 13px; color: var(--ink-3); line-height: 18px; }
-.hr-mark { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; height: 36px; border-radius: 10px;
-           background: var(--pine); color: var(--on-pine); font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
-.hr-mark.sm { width: 30px; height: 30px; border-radius: 8px; font-size: 14px; }
+.hr-mark { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%;
+           background: var(--pine); color: var(--on-pine); font-size: 16px; font-weight: 700; box-shadow: 2px 3px 0 var(--edge); }
+
+.hr-mark.sm { width: 32px; height: 32px; font-size: 14px; }
 
 /* ---------- Form controls (sign-in, password change, sidebar forms) ---------- */
 [data-testid="stForm"] { border: 0 !important; padding: 0 !important; background: transparent !important; max-width: none; }
@@ -485,27 +541,32 @@ div[data-baseweb="base-input"], div[data-baseweb="base-input"] > div { backgroun
 DARK_CSS = """
 /* Dark theme: same variables, different values. Used when the person picks Dark in the top bar. */
 :root {
-    --canvas: #0d1211;
-    --surface: #141a18;
-    --side: #0a0e0d;
-    --mist: #1b2321;
-    --ink: #e8eeec;
-    --ink-2: #b3bfba;
-    --ink-3: #8a9893;
-    --line: #232c29;
-    --line-strong: #34413d;
-    --pine: #2bbfa4;
-    --pine-hover: #4ad2ba;
-    --pine-press: #22a58d;
-    --on-pine: #04211c;
-    --tint: #14312b;
-    --tint-2: #112723;
+    --canvas: #0e1124;
+    --surface: #171b34;
+    --side: #0b0e1f;
+    --mist: #262c52;
+    --ink: #eceefb;
+    --ink-2: #b6bad6;
+    --ink-3: #8d92b5;
+    --line: #262b4b;
+    --line-strong: #383e68;
+    --pine: #7c93ff;
+    --pine-hover: #94a7ff;
+    --pine-press: #6580f0;
+    --on-pine: #0a1030;
+    --tint: #212850;
+    --tint-2: #1b2145;
     --hover: rgba(255, 255, 255, 0.06);
     --warn-fg: #fbbf24;
     --warn-bg: rgba(251, 191, 36, 0.14);
     --bad-fg: #f97066;
     --bad-bg: rgba(249, 112, 102, 0.15);
-    --shadow: none;
+    --shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+    --edge: #04061a;
+    --c-lav: #20264d;
+    --c-butter: #3a3320;
+    --c-mint: #17352e;
+    --c-rose: #3a2224;
 }
 html, body, .stApp { color-scheme: dark !important; background: var(--canvas) !important; }
 [data-testid="stAlert"] { background: var(--surface) !important; border: 1px solid var(--line-strong); }
@@ -518,41 +579,89 @@ html, body, .stApp { color-scheme: dark !important; background: var(--canvas) !i
 """
 
 LOGIN_CSS = """
-.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] { background: var(--surface) !important; }
-.block-container, [data-testid="stMainBlockContainer"] { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] { gap: 0 !important; }
+.stApp, [data-testid='stAppViewContainer'], [data-testid='stMain'] { background: var(--surface) !important; }
+.block-container, [data-testid='stMainBlockContainer'] { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+[data-testid='stMainBlockContainer'] > [data-testid='stVerticalBlock'] { gap: 0 !important; }
+.stApp .hr-display, .stApp .hr-lg-title, .stApp .hr-lg-h { font-family: var(--font-display) !important; }
+.stApp .hr-hand { font-family: 'Caveat', 'Segoe Script', cursive !important; }
 
-/* right-hand panel: a sample conversation shows what the assistant does */
-.st-key-login_panel, .st-key-login_panel > [data-testid="stVerticalBlock"] { height: 0; min-height: 0; overflow: visible; }
-.hr-lg-panel { position: fixed; top: 16px; right: 16px; bottom: 16px; width: calc(50vw - 24px); z-index: 1; border-radius: 20px; overflow: hidden; background: var(--tint); }
-.hr-lg-panel-inner { box-sizing: border-box; height: 100%; width: 100%; padding: clamp(28px, 4vw, 56px); display: flex; flex-direction: column; justify-content: center; gap: 40px; }
-.hr-lg-h { max-width: 28rem; font-size: clamp(24px, 2.2vw, 32px); line-height: 1.25; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
-.hr-lg-p { max-width: 27rem; margin-top: 12px; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
-.hr-demo { display: flex; flex-direction: column; gap: 14px; max-width: 30rem; }
-.hr-demo-u { align-self: flex-end; max-width: 88%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 16px 16px 4px 16px; background: var(--surface); font-size: 14px; line-height: 1.5; color: var(--ink); }
-.hr-demo-b { align-self: flex-start; max-width: 94%; padding: 0 2px; font-size: 14px; line-height: 1.6; color: var(--ink); }
-.hr-demo-b b { font-weight: 600; }
-.hr-demo-act { display: flex; gap: 8px; margin-top: 10px; }
-.hr-demo-act span { padding: 6px 14px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); font-size: 13px; font-weight: 500; color: var(--ink-2); }
-.hr-demo-act span:first-child { border-color: var(--pine); background: var(--pine); color: var(--on-pine); }
-.hr-lg-note { max-width: 30rem; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+/* right-hand panel: indigo, with a sample conversation */
+.st-key-login_panel, .st-key-login_panel > [data-testid='stVerticalBlock'] { height: 0; min-height: 0; overflow: visible; }
+.hr-lg-panel { position: fixed; top: 20px; right: 20px; bottom: 20px; width: calc(50vw - 30px); z-index: 1; overflow: hidden;
+    border-radius: 36px 72px 36px 36px; background: var(--pine); color: #fff; }
+.hr-lg-panel::before { content: ''; position: absolute; top: -220px; right: -140px; width: 560px; height: 560px; border-radius: 50%; background: rgba(255,255,255,.06); }
+.hr-lg-panel::after { content: ''; position: absolute; left: -160px; bottom: -200px; width: 520px; height: 520px; border-radius: 50%; background: rgba(255,255,255,.05); }
+.hr-lg-dots { position: absolute; top: 28px; left: 28px; width: 46%; height: 34%; opacity: .55;
+    background-image: radial-gradient(rgba(255,255,255,.35) 1.2px, transparent 1.4px); background-size: 24px 24px;
+    -webkit-mask-image: linear-gradient(135deg, #000, transparent 75%); mask-image: linear-gradient(135deg, #000, transparent 75%); }
+.hr-lg-panel-inner { position: relative; z-index: 1; box-sizing: border-box; height: 100%; width: 100%; padding: clamp(28px, 3.6vw, 56px);
+    display: flex; flex-direction: column; justify-content: center; gap: clamp(20px, 4vh, 44px); }
+.hr-lg-hand { position: absolute; top: clamp(36px, 7vh, 72px); right: clamp(28px, 4vw, 60px); z-index: 2; transform: rotate(-7deg); text-align: center;
+    font-size: clamp(22px, 2vw, 32px); line-height: .95; font-weight: 700; color: var(--sun); }
+.hr-lg-hand svg { display: block; margin: 4px auto 0; }
+.hr-lg-h { margin: 0; font-size: clamp(40px, 4.4vw, 72px); line-height: .98; font-weight: 700; letter-spacing: -0.035em; color: #fff; }
+.hr-lg-h span { color: var(--sun); }
+.hr-lg-p { max-width: 36rem; margin-top: 18px; font-size: clamp(15px, 1.25vw, 19px); line-height: 1.65; color: rgba(255,255,255,.9); }
+.hr-lg-card { position: relative; box-sizing: border-box; max-width: 34rem; padding: 18px 20px 22px; border: 2px solid #151a33; border-radius: 24px;
+    background: #fffdf8; color: #151a33; box-shadow: 8px 8px 0 var(--sun); }
+.hr-lg-card-head { display: flex; align-items: center; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #e9e5d8; }
+.hr-lg-card-ico { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: #e6eafb; color: #3f5bd0; }
+.hr-lg-card-name { font-size: 15px; font-weight: 600; line-height: 20px; }
+.hr-lg-card-sub { font-size: 12.5px; line-height: 16px; color: #868ba0; }
+.hr-lg-live { margin-left: auto; width: 12px; height: 12px; border-radius: 50%; background: #3fb98a; box-shadow: 0 0 0 4px #d8f0e6; }
+.hr-demo { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; }
+.hr-demo-b { align-self: flex-start; max-width: 92%; padding: 11px 15px; border-radius: 14px 14px 14px 4px; background: #f3f0e6; font-size: 14.5px; line-height: 1.5; }
+.hr-demo-b b { font-weight: 700; }
+.hr-demo-u { align-self: flex-end; max-width: 88%; padding: 11px 16px; border-radius: 14px 14px 4px 14px; background: #3f5bd0; color: #fff; font-size: 14.5px; line-height: 1.5; font-weight: 500; }
+.hr-demo-act { display: flex; gap: 10px; }
+.hr-demo-act span { padding: 7px 14px; border: 1px solid #d6d1c0; border-radius: 10px; background: #fffdf8; font-size: 13px; font-weight: 600; color: #565b73; }
+.hr-lg-chars { position: absolute; right: clamp(24px, 3vw, 48px); bottom: clamp(70px, 11vh, 110px); z-index: 2; width: clamp(170px, 15vw, 250px); }
+.hr-lg-chars svg { display: block; width: 100%; height: auto; }
+.hr-lg-note { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.88); }
 
 /* left-hand sign-in column */
-.st-key-login_left, .st-key-login_left > [data-testid="stVerticalBlock"] { display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; gap: 0 !important; }
-.st-key-login_left { width: 50vw; max-width: 50vw; margin: 0; padding: 0 max(24px, calc((50vw - 26rem) / 2)); box-sizing: border-box; }
-.hr-lg-brand { display: flex; align-items: center; gap: 10px; height: 88px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
-.hr-lg-foot { display: flex; align-items: center; height: 88px; font-size: 12px; color: var(--ink-3); }
-.st-key-login_zone, .st-key-login_zone > [data-testid="stVerticalBlock"] { gap: 0 !important; }
-.hr-lg-title { font-size: 28px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
-.hr-lg-sub { margin: 6px 0 28px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.st-key-login_left, .st-key-login_left > [data-testid='stVerticalBlock'] { display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; gap: 0 !important; }
+.st-key-login_left { position: relative; overflow: clip; width: 50vw; max-width: 50vw; margin: 0; padding: 0 max(24px, calc((50vw - 33rem) / 2)); box-sizing: border-box; }
+.st-key-login_left::before { content: ''; position: absolute; left: -64px; bottom: -64px; width: 210px; height: 210px; border-radius: 50%; background: #fcefc0; }
+.st-key-login_left > * { position: relative; z-index: 1; }
+.hr-lg-brand { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 104px; }
+.hr-lg-brand-l { display: flex; align-items: center; gap: 12px; }
+.hr-lg-brand .hr-mark { width: 46px; height: 46px; font-size: 21px; }
+.hr-lg-brand-name { font-size: 20px; line-height: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+.hr-lg-brand-sub { font-size: 11px; line-height: 15px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.hr-lg-secure { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); }
+.hr-lg-foot { display: flex; align-items: center; gap: 10px; height: 96px; font-size: 14px; color: var(--ink-3); }
+.st-key-login_zone, .st-key-login_zone > [data-testid='stVerticalBlock'] { gap: 0 !important; }
+.hr-lg-eyebrow { display: inline-block; margin-bottom: 16px; padding: 6px 12px; border-radius: 6px; background: var(--tint); color: var(--pine);
+    font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.hr-lg-title { font-size: 42px; line-height: 1.05; font-weight: 700; letter-spacing: -0.035em; color: var(--ink); }
+.hr-lg-title.big { font-size: clamp(46px, 4.6vw, 72px); line-height: 1; }
+.hr-lg-sub { max-width: 30rem; margin: 14px 0 30px; font-size: 18px; line-height: 1.65; color: var(--ink-2); }
 .st-key-login_back button { margin-top: 12px; padding: 6px 0; min-height: 0; border: 0 !important; background: transparent !important; color: var(--ink-2) !important; font-size: 14px; font-weight: 500; }
 .st-key-login_back button:hover { color: var(--ink) !important; text-decoration: underline; }
+
+/* form: tall white fields with a left icon, one chunky indigo button */
+[data-testid='stForm'] [data-testid='stVerticalBlock'] { gap: 18px; }
+[data-testid='stWidgetLabel'] p { font-size: 15px !important; font-weight: 600 !important; color: var(--ink) !important; }
+[data-testid='stTextInputRootElement'] { background: #fff !important; border-radius: 12px !important; box-shadow: 0 2px 0 rgba(21,26,51,.06); }
+[data-testid='stTextInputRootElement'] input { padding: 17px 16px !important; font-size: 17px !important; line-height: 22px; }
+[data-testid='stFormSubmitButton'] button { padding: 15px 16px; border-radius: 12px; box-shadow: 3px 5px 0 var(--edge); transition: transform .12s, box-shadow .12s, background-color .15s; }
+[data-testid='stFormSubmitButton'] button:hover { transform: translate(1px, 1px); box-shadow: 2px 4px 0 var(--edge); }
+[data-testid='stFormSubmitButton'] button:active { transform: translate(3px, 5px); box-shadow: 0 0 0 var(--edge); }
+[data-testid='stFormSubmitButton'] button, [data-testid='stFormSubmitButton'] button * { font-size: 17px; font-weight: 600; }
+[data-testid='stFormSubmitButton'] button p::after { content: '\\2192'; margin-left: 10px; }
 
 @media (max-width: 899px) {
     .hr-lg-panel { display: none; }
     .st-key-login_left { width: 100%; max-width: 100%; padding: 0 24px; }
+    .hr-lg-secure { display: none; }
 }
-"""
+@media (max-height: 760px) { .hr-lg-chars { display: none; } .hr-lg-p { display: none; } }
+""" + "".join(
+    f".st-key-{key} [data-testid='stTextInputRootElement'] input {{ padding-left: 50px !important; background-repeat: no-repeat !important; "
+    f"background-position: 17px center !important; background-size: 21px !important; background-image: {_svg_url(icon, '#565b73')} !important; }}\n"
+    for key, icon in (("login_emp", "user"), ("login_pw", "lock"))
+) + _mask_css(".hr-lg-secure", "shield", 20) + _mask_css(".hr-lg-foot", "help", 20)
 
 MAIN_CSS = """
 .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] { background: var(--canvas) !important; }
@@ -841,11 +950,81 @@ div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
 [data-testid="stDateInput"] label p, [data-testid="stSelectbox"] label p { font-size: 13px !important; font-weight: 600 !important; color: var(--ink-2) !important; }
 """
 
-# External font loading is off by default (it sends every visitor's IP to Google on each page view).
-# The font stack falls back to the system UI font. Set HR_ALLOW_EXTERNAL_FONTS=1 to load Figtree from Google Fonts.
-if os.environ.get("HR_ALLOW_EXTERNAL_FONTS") != "1":
-    BASE_CSS = re.sub(r"@import url\('https://fonts\.googleapis\.com[^']*'\);\n?", "", BASE_CSS)
+THEME_CSS = """
+.stApp .hr-display, .stApp .hr-card-title { font-family: var(--font-display) !important; }
 
+/* ---------- Sidebar ---------- */
+section[data-testid='stSidebar'] { background: var(--side) !important; border-right: 1px solid var(--line); }
+[data-testid='stSidebarUserContent'] { padding: 0 14px 104px !important; }
+.st-key-side_root, .st-key-side_root > [data-testid='stVerticalBlock'] { gap: 18px !important; }
+.hr-brand { gap: 12px; margin: 0 -14px; padding: 22px 20px 18px; border-bottom: 1px solid var(--line); }
+.hr-brand .hr-mark { width: 44px; height: 44px; font-size: 20px; }
+.hr-brand-title { font-size: 20px; line-height: 24px; font-weight: 700; letter-spacing: -0.02em; }
+.hr-brand-sub { font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+[data-testid='stSidebar'] .hr-label { padding: 0 10px 8px; font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+
+[class*='st-key-nav_'] button, [class*='st-key-navon_'] button { padding: 11px 14px; border-radius: 12px; }
+[class*='st-key-nav_'] button p, [class*='st-key-navon_'] button p { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+[class*='st-key-navon_'] button { background: var(--pine) !important; box-shadow: 2px 3px 0 var(--edge); }
+[class*='st-key-navon_'] button, [class*='st-key-navon_'] button * { color: var(--on-pine) !important; font-weight: 700; }
+[class*='st-key-navon_'] button p::after { content: ''; margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--sun); }
+
+.st-key-new_conv button { padding: 12px 14px; border-radius: 12px; box-shadow: 2px 3px 0 var(--edge); transition: transform .12s, box-shadow .12s, background-color .15s; }
+.st-key-new_conv button:hover { transform: translate(1px, 1px); box-shadow: 1px 2px 0 var(--edge); }
+.st-key-new_conv button, .st-key-new_conv button * { font-size: 15px; font-weight: 700; }
+
+[class*='st-key-recent_'] button, [class*='st-key-cat_'] button { padding-top: 9px; padding-bottom: 9px; }
+[class*='st-key-recent_'] button, [class*='st-key-recent_'] button *, [class*='st-key-cat_'] button, [class*='st-key-cat_'] button * { font-size: 15px; }
+[class*='st-key-cat_'] button { position: relative; padding-right: 38px; }
+[class*='st-key-cat_'] button::after { content: ''; position: absolute; right: 12px; top: 50%; width: 16px; height: 16px; margin-top: -8px; background: var(--ink-2);
+    -webkit-mask: CHEVRON center / contain no-repeat; mask: CHEVRON center / contain no-repeat; }
+
+.st-key-side_more { margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--line); }
+.st-key-side_more, .st-key-side_more > [data-testid='stVerticalBlock'] { gap: 2px !important; }
+[class*='st-key-side_adm'] [data-testid='stExpander'] summary, [class*='st-key-side_aud'] [data-testid='stExpander'] summary, .st-key-side_account [data-testid='stExpander'] summary {
+    display: flex !important; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 12px; }
+[data-testid='stSidebar'] [data-testid='stExpander'] summary p { color: var(--ink) !important; font-size: 15px; font-weight: 500; }
+[class*='st-key-side_adm'] summary svg, [class*='st-key-side_aud'] summary svg, .st-key-side_account summary svg,
+[class*='st-key-side_adm'] summary [data-testid='stIconMaterial'], [class*='st-key-side_aud'] summary [data-testid='stIconMaterial'], .st-key-side_account summary [data-testid='stIconMaterial'] { display: none !important; }
+
+/* signed-in user: a card pinned to the bottom of the sidebar */
+.st-key-side_footer { width: var(--sidebar-w); padding: 10px 14px 14px; border-top: 0; background: var(--side); }
+.st-key-side_footer [data-testid='stHorizontalBlock'] { padding: 10px 12px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 2px 0 rgba(21,26,51,.05); }
+.hr-avatar { width: 40px; height: 40px; font-size: 13px; font-weight: 700; }
+.hr-user-name { font-size: 15px; font-weight: 700; }
+.hr-user-role { font-size: 13px; }
+.st-key-signout button { position: relative; width: 38px; height: 38px; padding: 0; border: 0 !important; background: transparent !important; }
+.st-key-signout button:hover { background: var(--hover) !important; }
+.st-key-signout button p { font-size: 0 !important; }
+.st-key-signout button::before { content: ''; position: absolute; inset: 0; margin: auto; width: 22px; height: 22px; background: var(--ink-2);
+    -webkit-mask: LOGOUT center / contain no-repeat; mask: LOGOUT center / contain no-repeat; }
+
+/* ---------- Layout safety: columns never squeeze their children (this made labels overlap) ---------- */
+[data-testid='stVerticalBlock'] > * { flex-shrink: 0 !important; }
+[data-testid='stChatMessage'] { height: auto !important; overflow: visible !important; }
+
+/* ---------- Widgets follow the app theme (light / dark switch), not the browser's colour scheme ---------- */
+[data-testid='stSidebar'] [data-testid='stExpander'] summary { color: var(--ink) !important; }
+.stApp [data-testid='stDateInput'] *, .stApp [data-testid='stSelectbox'] [data-baseweb='select'] * { background-color: transparent !important; color: var(--ink) !important; }
+.stApp [data-testid='stDateInput'] input, .stApp [data-testid='stSelectbox'] input { -webkit-text-fill-color: var(--ink) !important; }
+.stApp [data-testid='stDateInput'] div[data-baseweb='input'], .stApp [data-testid='stSelectbox'] div[data-baseweb='select'] {
+    background-color: var(--surface) !important; border: 1px solid var(--line-strong) !important; border-radius: 12px !important; }
+
+/* ---------- Stat cards: one grid, equal heights, notes line up along the bottom ---------- */
+.hr-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.hr-kpis .hr-kpi { display: flex; flex-direction: column; height: 100%; }
+.hr-kpis .hr-kpi-note { margin-top: auto; padding-top: 10px; }
+@media (max-width: 1100px) { .hr-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .hr-kpis { grid-template-columns: 1fr; } }
+""".replace("CHEVRON", _svg_url("chevron")).replace("LOGOUT", _svg_url("logout")) \
+    + _mask_css(".st-key-nav_dashboard button p, .st-key-navon_dashboard button p", "grid") \
+    + _mask_css(".st-key-nav_chat button p, .st-key-navon_chat button p", "chat") \
+    + _mask_css("[class*='st-key-side_adm'] [data-testid='stExpander'] summary", "file") \
+    + _mask_css("[class*='st-key-side_aud'] [data-testid='stExpander'] summary", "filecheck") \
+    + _mask_css(".st-key-side_account [data-testid='stExpander'] summary", "shieldcheck")
+
+# Fonts (DM Sans, Fraunces, Caveat; SIL Open Font License) are served from ./static/fonts, so the app
+# makes no external requests. Streamlit needs enableStaticServing = true in .streamlit/config.toml.
 
 def inject_css(css: str):
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
@@ -871,19 +1050,28 @@ def archive_current_conversation():
 # LOGIN VIEW
 # =====================================================================
 LOGIN_PANEL_HTML = (
-    '<div class="hr-lg-panel"><div class="hr-lg-panel-inner">'
-    '<div><div class="hr-lg-h">Policy answers and everyday HR tasks, in one conversation.</div>'
-    '<div class="hr-lg-p">Ask about leave, benefits and workplace rules, see who is away and when they are back, '
-    'or request time off. Policy answers come from your company\'s own policy document.</div></div>'
+    '<div class="hr-lg-panel"><div class="hr-lg-dots"></div>'
+    '<div class="hr-lg-hand hr-hand">Work should<br>feel human.'
+    "<svg width='86' height='12' viewBox='0 0 86 12' fill='none' stroke='#f7c948' stroke-width='2' stroke-linecap='round'><path d='M3 9c18-8 52-9 80-2'/></svg></div>"
+    '<div class="hr-lg-panel-inner">'
+    '<div><div class="hr-lg-h" role="heading" aria-level="2">Less paperwork.<br><span>More peoplework.</span></div>'
+    '<div class="hr-lg-p">Find trusted policy answers, request time off, and keep your team moving without the back-and-forth.</div></div>'
+    '<div class="hr-lg-card">'
+    f'<div class="hr-lg-card-head"><span class="hr-lg-card-ico">{_svg("bot", 22)}</span>'
+    '<div><div class="hr-lg-card-name">GlobalCorp Assistant</div><div class="hr-lg-card-sub">Usually replies instantly</div></div>'
+    '<span class="hr-lg-live"></span></div>'
     '<div class="hr-demo">'
-    '<div class="hr-demo-u">Is Bob on leave? When is he back?</div>'
-    '<div class="hr-demo-b"><b>Bob Manager</b> is on leave until Friday and is expected back on Monday.</div>'
-    '<div class="hr-demo-u">Apply for leave next week</div>'
-    '<div class="hr-demo-b">I\'ll request annual leave for next Monday to Friday (5 working days). '
-    'It will go to your manager for approval. Confirm?'
-    '<div class="hr-demo-act"><span>Confirm</span><span>Cancel</span></div></div>'
-    '</div>'
-    '<div class="hr-lg-note">Runs on your organisation\'s own servers. Nothing changes without your confirmation.</div>'
+    '<div class="hr-demo-b">You have <b>12 annual leave days</b> remaining this year.</div>'
+    '<div class="hr-demo-u">Who is away this week?</div>'
+    '<div class="hr-demo-act"><span>View team calendar</span><span>Request leave</span></div>'
+    '</div></div>'
+    '<div class="hr-lg-chars"><svg viewBox="0 0 260 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+    '<g stroke="#151a33" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">'
+    '<g transform="rotate(-6 48 84)"><rect x="22" y="54" width="52" height="62" rx="20" fill="#e4806f"/><circle cx="48" cy="38" r="20" fill="#f7c948"/><path d="M40 78h16" fill="none"/></g>'
+    '<rect x="84" y="40" width="54" height="76" rx="20" fill="#8ed1be"/><circle cx="111" cy="22" r="19" fill="#e88a79"/><path d="M103 62h16" fill="none"/>'
+    '<g transform="rotate(5 174 86)"><rect x="148" y="56" width="52" height="60" rx="20" fill="#f2d364"/><circle cx="174" cy="40" r="18" fill="#a9b9f5"/><path d="M166 78h16" fill="none"/></g>'
+    '<path d="M2 122h254" fill="none" stroke-width="2"/></g></svg></div>'
+    f'<div class="hr-lg-note">{_svg("shield", 20, "currentColor", 1.8)}<span>Private, secure, and built for your company</span></div>'
     '</div></div>'
 )
 
@@ -905,7 +1093,9 @@ def render_login_view():
 
     with st.container(key="login_left"):
         st.markdown(
-            '<div class="hr-lg-brand"><span class="hr-mark sm">G</span><span>GlobalCorp</span></div>',
+            '<div class="hr-lg-brand"><div class="hr-lg-brand-l"><span class="hr-mark">G</span><div>'
+            '<div class="hr-lg-brand-name">GlobalCorp</div><div class="hr-lg-brand-sub">HR Workspace</div></div></div>'
+            '<span class="hr-lg-secure">Secure employee access</span></div>',
             unsafe_allow_html=True,
         )
 
@@ -917,13 +1107,14 @@ def render_login_view():
             if stage == "signin":
                 st.markdown(
                     '<div>'
-                    '<div class="hr-lg-title">Sign in to your account</div>'
-                    '<div class="hr-lg-sub">Use your employee ID and password to continue.</div></div>',
+                    '<span class="hr-lg-eyebrow">HR Policy Assistant</span>'
+                    '<div class="hr-lg-title big" role="heading" aria-level="1">Welcome back</div>'
+                    '<div class="hr-lg-sub">Sign in to manage leave, get policy answers, and stay connected with your team.</div></div>',
                     unsafe_allow_html=True,
                 )
                 with st.form("login_form", clear_on_submit=False):
-                    emp_id = st.text_input("Employee ID")
-                    pw = st.text_input("Password", type="password")
+                    emp_id = st.text_input("Employee ID", key="login_emp")
+                    pw = st.text_input("Password", type="password", key="login_pw")
                     submitted = st.form_submit_button("Sign in")
 
                     if submitted:
@@ -945,7 +1136,7 @@ def render_login_view():
             elif stage == "mfa":
                 st.markdown(
                     '<div>'
-                    '<div class="hr-lg-title">Two-step verification</div>'
+                    '<span class="hr-lg-eyebrow">HR Policy Assistant</span><div class="hr-lg-title">Two-step verification</div>'
                     '<div class="hr-lg-sub">Enter the 6-digit code from your authenticator app.</div></div>',
                     unsafe_allow_html=True,
                 )
@@ -967,7 +1158,7 @@ def render_login_view():
             elif stage == "change_password":
                 st.markdown(
                     '<div>'
-                    '<div class="hr-lg-title">Choose a new password</div>'
+                    '<span class="hr-lg-eyebrow">HR Policy Assistant</span><div class="hr-lg-title">Choose a new password</div>'
                     '<div class="hr-lg-sub">Before you continue, set your own password. Use at least 12 characters.</div></div>',
                     unsafe_allow_html=True,
                 )
@@ -990,7 +1181,7 @@ def render_login_view():
                 st.rerun()
 
         st.markdown(
-            '<div class="hr-lg-foot">Need help signing in? Contact your HR administrator.</div>',
+            '<div class="hr-lg-foot">Forgot your password or locked out? Your HR administrator can reset it.</div>',
             unsafe_allow_html=True,
         )
 
@@ -1024,7 +1215,7 @@ def _audit_policy_download():
 
 def render_admin_panel():
     """Sidebar admin tools. Only called for HR admins."""
-    with st.expander("Admin", expanded=False):
+    with st.expander("Policy management", expanded=False):
         st.markdown(
             '<div class="hr-admin-note">The assistant answers from the policy document below. '
             'Upload a new version to replace it and rebuild the index.</div>',
@@ -1238,71 +1429,75 @@ def _nav_item(label: str, view: str):
 
 
 def render_sidebar(user):
-    in_chat = st.session_state.view == "chat"
     with st.sidebar:
         with st.container(key="side_root"):
             st.markdown(
-                '<div class="hr-brand"><span class="hr-mark sm">G</span><div>'
-                '<div class="hr-brand-title">HR Assistant</div><div class="hr-brand-sub">GlobalCorp</div></div></div>',
+                '<div class="hr-brand"><span class="hr-mark">G</span><div>'
+                '<div class="hr-brand-title">GlobalCorp</div><div class="hr-brand-sub">HR Workspace</div></div></div>',
                 unsafe_allow_html=True,
             )
 
             with st.container(key="side_nav"):
-                st.markdown('<div class="hr-label">Menu</div>', unsafe_allow_html=True)
+                st.markdown('<div class="hr-label"></div>', unsafe_allow_html=True)
                 _nav_item("Dashboard", "dashboard")
-                _nav_item("Assistant", "chat")
+                _nav_item("Policy assistant", "chat")
 
-            if in_chat:
-                if st.button("New conversation", key="new_conv"):
-                    archive_current_conversation()
-                    st.session_state.messages = []
-                    st.session_state.pending_action = None
-                    st.rerun()
+            if st.button("New conversation", key="new_conv"):
+                archive_current_conversation()
+                st.session_state.messages = []
+                st.session_state.pending_action = None
+                st.session_state.view = "chat"
+                st.rerun()
 
-                with st.container(key="side_recent"):
-                    empty_note = "" if st.session_state.history else '<div class="hr-muted">No earlier conversations yet.</div>'
-                    st.markdown(
-                        f'<div><div class="hr-label">Recent</div>{empty_note}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    for i, convo in enumerate(st.session_state.history):
-                        first_user = next((m["content"] for m in convo if m["role"] == "user"), "Conversation")
-                        title = first_user.strip().replace("\n", " ")
-                        title = (title[:34] + "…") if len(title) > 34 else title
-                        if st.button(_md_escape(title), key=f"recent_{i}"):
-                            current = st.session_state.messages
-                            chosen = st.session_state.history.pop(i)
-                            if current:
-                                st.session_state.history.insert(0, list(current))
-                            st.session_state.messages = chosen
-                            st.session_state.pending_action = None
-                            st.rerun()
+            with st.container(key="side_recent"):
+                empty_note = "" if st.session_state.history else '<div class="hr-muted">No earlier conversations yet.</div>'
+                st.markdown(
+                    f'<div><div class="hr-label">Recent conversations</div>{empty_note}</div>',
+                    unsafe_allow_html=True,
+                )
+                for i, convo in enumerate(st.session_state.history):
+                    first_user = next((m["content"] for m in convo if m["role"] == "user"), "Conversation")
+                    title = first_user.strip().replace("\n", " ")
+                    title = (title[:34] + "…") if len(title) > 34 else title
+                    if st.button(_md_escape(title), key=f"recent_{i}"):
+                        current = st.session_state.messages
+                        chosen = st.session_state.history.pop(i)
+                        if current:
+                            st.session_state.history.insert(0, list(current))
+                        st.session_state.messages = chosen
+                        st.session_state.pending_action = None
+                        st.session_state.view = "chat"
+                        st.rerun()
 
-                with st.container(key="side_cats"):
-                    st.markdown('<div class="hr-label">Topics</div>', unsafe_allow_html=True)
-                    for i, cat in enumerate(CATEGORIES):
-                        if st.button(cat, key=f"cat_{i}"):
-                            st.session_state.pending_prompt = f"Tell me about {cat.lower()} policies."
-                            st.rerun()
+            with st.container(key="side_cats"):
+                st.markdown('<div class="hr-label"></div>', unsafe_allow_html=True)
+                for i, cat in enumerate(CATEGORIES):
+                    if st.button(cat, key=f"cat_{i}"):
+                        st.session_state.pending_prompt = f"Tell me about {cat.lower()} policies."
+                        st.session_state.view = "chat"
+                        st.rerun()
 
-            if _is_admin():
-                render_admin_panel()
-            render_account_panel(user)
-            if _is_admin():
-                render_audit_panel()
+            with st.container(key="side_more"):
+                if _is_admin():
+                    with st.container(key="side_admin"):
+                        render_admin_panel()
+                    with st.container(key="side_audit"):
+                        render_audit_panel()
+                with st.container(key="side_account"):
+                    render_account_panel(user)
 
             with st.container(key="side_footer"):
-                info_col, btn_col = st.columns([5, 3], vertical_alignment="center")
+                info_col, btn_col = st.columns([5, 1], vertical_alignment="center")
                 with info_col:
                     st.markdown(
-                        f'<div class="hr-user"><span class="hr-avatar">{html.escape(_initials(user["name"]))}</span>'
+                        f'<div class="hr-user" title="{html.escape(user["employee_id"])}">'
+                        f'<span class="hr-avatar">{html.escape(_initials(user["name"]))}</span>'
                         f'<div class="hr-user-text"><div class="hr-user-name">{html.escape(user["name"])}</div>'
-                        f'<div class="hr-user-role">{html.escape(ROLE_LABELS.get(user["role"], user["role"]))} '
-                        f'({html.escape(user["employee_id"])})</div></div></div>',
+                        f'<div class="hr-user-role">{html.escape(ROLE_LABELS.get(user["role"], user["role"]))}</div></div></div>',
                         unsafe_allow_html=True,
                     )
                 with btn_col:
-                    if st.button("Sign out", key="signout"):
+                    if st.button("Sign out", key="signout", help="Sign out"):
                         _sign_out()
 
 
@@ -1477,17 +1672,15 @@ def render_dashboard(user):
     bal = hr_data.leave_balance(uid)
     waiting = sum(1 for r in hr_data.my_requests(uid, limit=50) if r["status"] == "pending")
     with st.container(key="dash"):
-        cols = st.columns(4)
-        for col, kind, label in zip(cols, ("annual", "sick", "casual"), ("Annual leave", "Sick leave", "Casual leave")):
-            with col:
-                st.markdown(_kpi_html(label, bal[kind]), unsafe_allow_html=True)
-        with cols[3]:
-            st.markdown(
-                f'<div class="hr-kpi"><div class="hr-kpi-label">My pending requests</div>'
-                f'<div class="hr-kpi-value">{waiting}<small>{"waiting" if waiting else "none"}</small></div>'
-                f'<div class="hr-kpi-note">{"Waiting for a decision" if waiting else "Nothing is waiting for approval"}</div></div>',
-                unsafe_allow_html=True,
-            )
+        cards = "".join(
+            _kpi_html(label, bal[kind])
+            for kind, label in (("annual", "Annual leave"), ("sick", "Sick leave"), ("casual", "Casual leave"))
+        ) + (
+            f'<div class="hr-kpi"><div class="hr-kpi-label">My pending requests</div>'
+            f'<div class="hr-kpi-value">{waiting}<small>{"waiting" if waiting else "none"}</small></div>'
+            f'<div class="hr-kpi-note">{"Waiting for a decision" if waiting else "Nothing is waiting for approval"}</div></div>'
+        )
+        st.markdown(f'<div class="hr-kpis">{cards}</div>', unsafe_allow_html=True)   # one grid, so every card is the same height
 
         left, right = st.columns([3, 2])
         with left:
@@ -1577,7 +1770,7 @@ def render_chat(user):
 def render_main_view():
     user = st.session_state.user
     theme = st.session_state.get("theme", "light")
-    inject_css(BASE_CSS + (DARK_CSS if theme == "dark" else "") + MAIN_CSS)
+    inject_css(BASE_CSS + (DARK_CSS if theme == "dark" else "") + MAIN_CSS + THEME_CSS)
 
     notice = st.session_state.pop("admin_notice", None)
     if notice:
